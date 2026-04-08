@@ -10,6 +10,7 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+.python-version
 .venv/
 venv/
 env/
@@ -17,8 +18,10 @@ ENV/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 .coverage
 .coverage.*
+coverage.xml
 htmlcov/
 dist/
 build/
@@ -38,14 +41,18 @@ pnpm-debug.log*
 # Vite / build outputs
 frontend/dist/
 frontend/.vite/
+frontend/.eslintcache
 
 # Runtime artifacts
 backend/artifacts/
+celerybeat-schedule
+*.sqlite3
 *.log
 
 # Editor / OS
 .idea/
 .vscode/
+*.iml
 *.swp
 *.swo
 .DS_Store
