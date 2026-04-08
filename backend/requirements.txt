@@ -1,0 +1,44 @@
+# CipherSight Backend Dependencies
+
+# FastAPI + Server
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+websockets==14.1
+python-multipart==0.0.18
+
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+alembic==1.14.1
+
+# Task Queue
+celery[redis]==5.4.0
+redis==5.2.1
+
+# Data Validation
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# TLS / Crypto Analysis
+cryptography==44.0.0
+dnspython==2.7.0
+
+# CBOM / Reports
+reportlab==4.2.5
+pandas==2.2.3
+
+# Certificate / Badge
+qrcode[pil]==8.0
+Pillow==11.1.0
+
+# HTTP Client
+aiohttp==3.11.11
+httpx==0.28.1
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Utilities
+python-dotenv==1.0.1
