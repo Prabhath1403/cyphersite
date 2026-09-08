@@ -19,6 +19,11 @@ const STATUS_CONFIG = {
     className: 'badge-vulnerable',
     icon: '🔴',
   },
+  INCONCLUSIVE: {
+    label: 'Inconclusive',
+    className: 'badge-inconclusive',
+    icon: '🟠',
+  },
 };
 
 export default function PQCBadge({ status, size = 'sm' }) {

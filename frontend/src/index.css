@@ -102,6 +102,10 @@
     @apply status-badge bg-gray-400/10 text-gray-400 border border-gray-400/20;
   }
 
+  .badge-inconclusive {
+    @apply status-badge bg-amber-500/10 text-amber-500/70 border border-amber-500/20;
+  }
+
   .badge-running {
     @apply status-badge bg-cyan-400/10 text-cyan-400 border border-cyan-400/20;
   }

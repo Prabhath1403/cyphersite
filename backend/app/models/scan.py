@@ -35,6 +35,7 @@ class ScanJob(Base):
     # Relationships
     assets = relationship("Asset", back_populates="scan", cascade="all, delete-orphan")
     cbom_records = relationship("CBOMRecord", back_populates="scan", cascade="all, delete-orphan")
+    crypto_assets = relationship("CryptoAsset", back_populates="scan", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<ScanJob {self.id} target={self.target} status={self.status}>"

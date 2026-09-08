@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PQCAssessmentResult:
     """Result of a PQC readiness assessment."""
-    pqc_status: str = "VULNERABLE"  # QUANTUM_SAFE, HYBRID_READY, VULNERABLE
+    pqc_status: str = "VULNERABLE"  # QUANTUM_SAFE, HYBRID_READY, VULNERABLE, INCONCLUSIVE
     risk_score: float = 100.0  # 0-100 (100 = most vulnerable)
     vulnerabilities: List[str] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
@@ -216,6 +216,7 @@ def assess_pqc_readiness(
     - QUANTUM_SAFE: Uses PQC algorithms (ML-KEM, ML-DSA, SLH-DSA, or hybrids)
     - HYBRID_READY: TLS 1.3 with ephemeral key exchange + modern ciphers
     - VULNERABLE: Legacy protocols, weak key exchange, deprecated algorithms
+    - INCONCLUSIVE: Asset could not be inspected (timeout, connection failure)
 
     Args:
         tls_versions: List of supported TLS versions.
@@ -231,11 +232,11 @@ def assess_pqc_readiness(
 
     # Step 0: Check for empty data (handshake/connection failure)
     if not tls_versions and not cipher_suites and not certificate:
-        result.pqc_status = "VULNERABLE"
-        result.risk_score = 100.0
-        result.vulnerabilities.append("TLS handshake failed or connection timed out during inspection")
-        result.recommendations.append("Ensure the server is configured correctly for TLS")
-        result.recommendations.append("Check if a firewall or WAF is blocking scan traffic")
+        result.pqc_status = "INCONCLUSIVE"
+        result.risk_score = 50.0  # Neutral score for unreachable assets
+        result.vulnerabilities.append("Inspection Failed: TLS handshake failed or connection timed out")
+        result.recommendations.append("Verify the server is reachable and supports TLS")
+        result.recommendations.append("Check for firewalls or IP blocks preventing the scan")
         return result
 
     # Step 1: Check TLS versions
@@ -300,6 +301,7 @@ def assess_pqc_readiness(
         "QUANTUM_SAFE": 5,
         "HYBRID_READY": 30,
         "VULNERABLE": 65,
+        "INCONCLUSIVE": 50,
     }
     result.risk_score = min(100.0, max(0.0, base_risk.get(result.pqc_status, 65) + total_risk))
 

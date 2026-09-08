@@ -493,6 +493,7 @@ def run_full_scan(self, scan_id: str, target: str, scan_depth: str = "quick"):
         quantum_safe = 0
         vulnerable = 0
         hybrid = 0
+        inconclusive = 0
 
         for i, asset in enumerate(asset_records):
             progress = 55 + int((i / max(total_assets, 1)) * 20)
@@ -518,6 +519,8 @@ def run_full_scan(self, scan_id: str, target: str, scan_depth: str = "quick"):
                     quantum_safe += 1
                 elif assessment.pqc_status == "HYBRID_READY":
                     hybrid += 1
+                elif assessment.pqc_status == "INCONCLUSIVE":
+                    inconclusive += 1
                 else:
                     vulnerable += 1
             except Exception as e:
@@ -584,7 +587,8 @@ def run_full_scan(self, scan_id: str, target: str, scan_depth: str = "quick"):
 
         emit_progress(scan_id, "complete", 100, "Scan complete!")
         logger.info(f"Scan {scan_id} completed: {total_assets} assets, "
-                    f"{quantum_safe} safe, {hybrid} hybrid, {vulnerable} vulnerable")
+                    f"{quantum_safe} safe, {hybrid} hybrid, {vulnerable} vulnerable, "
+                    f"{inconclusive} inconclusive")
 
     except Exception as e:
         logger.error(f"Scan {scan_id} FATAL ERROR: {e}")

@@ -20,6 +20,11 @@ export const getDashboardStats = () => api.get('/scans/dashboard').then((r) => r
 export const getAssets = (params) => api.get('/assets', { params }).then((r) => r.data);
 export const getAssetDetail = (assetId) => api.get(`/assets/${assetId}`).then((r) => r.data);
 
+// === Crypto Assets ===
+export const getCryptoAssets = (params) => api.get('/crypto-assets', { params }).then((r) => r.data);
+export const getCryptoAsset = (assetId) => api.get(`/crypto-assets/${assetId}`).then((r) => r.data);
+export const createCryptoAsset = (data) => api.post('/crypto-assets', data).then((r) => r.data);
+
 // === CBOM ===
 export const getCBOM = (scanId, format = 'json') =>
   api.get(`/cbom/${scanId}`, { params: { format }, responseType: format === 'pdf' ? 'blob' : 'json' }).then((r) => r.data);
