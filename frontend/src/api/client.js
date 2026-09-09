@@ -16,6 +16,8 @@ export const getScans = (params) => api.get('/scans', { params }).then((r) => r.
 export const getScan = (scanId) => api.get(`/scans/${scanId}`).then((r) => r.data);
 export const getDashboardStats = () => api.get('/scans/dashboard').then((r) => r.data);
 export const submitSourceScan = (data) => api.post('/scan/source', data).then((r) => r.data);
+export const submitGitHubScan = (data) => api.post('/scan/github', data).then((r) => r.data);
+export const getGitHubRepoInfo = (params) => api.get('/scan/github/info', { params }).then((r) => r.data);
 export const submitContainerScan = (data) => api.post('/scan/container', data).then((r) => r.data);
 export const submitBinaryScan = (data) => api.post('/scan/binary', data).then((r) => r.data);
 export const getScanDetails = (scanId) => api.get(`/scan/${scanId}`).then((r) => r.data);

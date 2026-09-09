@@ -214,7 +214,8 @@ class GraphEngine:
 
         # Create nodes
         for node in graph.nodes:
-            props = ", ".join(f"{k}: '{str(v).replace("'", "\\'")}'" for k, v in node.properties.items())
+            props_items = [f"{k}: '{str(v).replace(chr(39), chr(92) + chr(39))}'" for k, v in node.properties.items()]
+            props = ", ".join(props_items)
             props_str = f" {{{props}}}" if props else ""
             stmt = f"MERGE (n:{node.type.capitalize()} {{id: '{node.id}'}}) ON CREATE SET n.label = '{node.label}'{props_str};"
             statements.append(stmt)

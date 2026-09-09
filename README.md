@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Standards-NIST%20FIPS%20203%20%7C%20204%20%7C%20205-00E5FF?style=for-the-badge" alt="Standards">
   <img src="https://img.shields.io/badge/Mandates-NSA%20CNSA%202.0-8A2BE2?style=for-the-badge" alt="CNSA 2.0">
   <img src="https://img.shields.io/badge/CBOM-CycloneDX%201.5-FFD600?style=for-the-badge" alt="CycloneDX">
-  <img src="https://img.shields.io/badge/Tests-122%20Passed-00E676?style=for-the-badge&logo=pytest" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-128%20Passed-00E676?style=for-the-badge&logo=pytest" alt="Tests">
 </p>
 
 <p align="center">
@@ -99,8 +99,10 @@ As Cryptographically Relevant Quantum Computers (CRQCs) approach reality, legacy
 - **Active & Passive Discovery**: Parallel DNS resolution, passive subdomain reconnaissance (crt.sh, HackerTarget, CertSpotter, AlienVault), and CIDR expansion.
 - **Deep Handshake Inspection**: Raw TLS packet inspection, cipher suite negotiation (TLS 1.2 and 1.3 aware), certificate DER decoding, and VPN endpoint detection.
 
-### 2. Python Source Code Scanner (AST)
+### 2. Python Source Code & GitHub Repository Scanner (AST)
 - **Zero False-Positive AST Parsing**: Traverses Python Abstract Syntax Trees without executing untrusted code.
+- **Remote GitHub Repository Ingestion**: Dual retrieval mechanism via GitHub REST API archive (in-memory zipball extraction without requiring external git CLI) and authenticated git clone fallback with branch and Personal Access Token (PAT) support.
+- **Repository Metadata Preview**: Automatic retrieval of repository metadata (stars, default branch, language, size, visibility).
 - **Library Signatures**: Detects APIs from `cryptography`, `PyCryptodome`, `hashlib`, `hmac`, and `ssl`.
 - **Granular Provenance**: Captures file paths, line numbers, function names, cipher modes (GCM, CBC, CTR), padding schemes (PKCS7, OAEP, PSS), and evidence snippets.
 
@@ -258,7 +260,9 @@ docker compose up --build -d
 
 ### Scans & Discovery
 - `POST /api/scans` — Submit asynchronous network TLS scan
-- `POST /api/scan/source` — Submit source code repository scan
+- `POST /api/scan/source` — Submit source code repository or remote Git/GitHub scan
+- `POST /api/scan/github` — Dedicated GitHub remote repository codebase scan
+- `GET /api/scan/github/info` — Fetch remote GitHub repository metadata (stars, branch, language, size)
 - `POST /api/scan/container` — Submit container image scan
 - `POST /api/scan/binary` — Submit compiled binary executable scan
 - `GET /api/scan/{id}` — Get scan job status and findings
@@ -294,7 +298,7 @@ docker compose up --build -d
 The platform is covered by an automated test suite verifying every layer of the pipeline:
 
 ```bash
-# Run backend test suite (122 tests)
+# Run backend test suite (128 tests)
 cd backend
 source venv/bin/activate
 pytest tests/ -v
@@ -306,6 +310,7 @@ npm run build
 
 **Test Coverage Highlights**:
 - Source code AST scanner and detection rules (`test_python_scanner.py`)
+- GitHub repository fetcher, zipball extraction & API (`test_github_repo_fetcher.py`)
 - Container image package & binary parsers (`test_container_scanner.py`)
 - Compiled binary ELF/PE/Mach-O parsers (`test_binary_scanner.py`)
 - Unified pipeline & canonical normalizer (`test_unified_pipeline.py`)

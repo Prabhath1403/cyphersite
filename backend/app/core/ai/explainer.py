@@ -531,6 +531,10 @@ class AIExplanationAgent:
         key_str = f"-{key_size}" if key_size else ""
         algo_name = f"{algorithm}{key_str}"
 
+        complexity_str = theory.get("quantum_complexity", "reduced levels")
+        attack_algo_str = theory.get("attack_algorithm", "Shor's Algorithm")
+        qubits_str = theory.get("qubits_required_estimate", "several thousand logical qubits")
+
         if quantum_status == "safe":
             return (
                 f"{algo_name} is mathematically resistant to known quantum cryptanalytic attacks. "
@@ -539,13 +543,13 @@ class AIExplanationAgent:
         elif quantum_status == "reduced_security_margin":
             return (
                 f"{algo_name} experiences a quadratic security reduction under Grover's Algorithm, "
-                f"reducing its effective security to {theory.get('quantum_complexity', 'reduced levels')}. "
+                f"reducing its effective security to {complexity_str}. "
                 "Migrating to AES-256 restores a full 128-bit quantum security margin."
             )
         else:
             return (
-                f"{algo_name} is fully vulnerable to {theory.get('attack_algorithm', 'Shor\'s Algorithm')}. "
-                f"A quantum computer with approximately {theory.get('qubits_required_estimate', 'several thousand logical qubits')} "
+                f"{algo_name} is fully vulnerable to {attack_algo_str}. "
+                f"A quantum computer with approximately {qubits_str} "
                 "can factor the modulus or solve the discrete logarithm in polynomial time O((log N)^3), completely breaking encryption and signatures."
             )
 

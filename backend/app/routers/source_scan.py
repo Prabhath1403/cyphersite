@@ -23,12 +23,13 @@ from app.database import get_db
 from app.models.scan import ScanJob
 from app.models.crypto_asset import CryptoAsset
 from app.models.cbom import CBOMRecord
-from app.schemas.scan import SourceScanCreate, ContainerScanCreate, BinaryScanCreate, ScanSummary
+from app.schemas.scan import SourceScanCreate, ContainerScanCreate, BinaryScanCreate, GitHubScanCreate, ScanSummary
 from app.schemas.crypto_asset import CryptoAssetResponse
 from app.schemas.coverage import CoverageReportResponse
 from app.core.source_scanner import ScanTarget
 from app.core.source_scanner.python_scanner import PythonScanner
 from app.core.cbom.builder import build_cbom, cbom_to_json_string
+from app.core.github.repository_fetcher import GitHubRepositoryFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +67,21 @@ async def submit_source_scan(
     Accepts:
     - A local filesystem path (e.g., ``/path/to/project`` or ``./src``)
     - A Git repository URL (e.g., ``https://github.com/org/repo.git``)
+    - A GitHub shorthand repository (e.g., ``owner/repo``)
 
     Discovers crypto APIs, evaluates NIST PQC readiness, saves canonical
     CryptoAsset findings, and generates a CycloneDX 1.5 CBOM.
     """
     target_str = request.path.strip()
-    is_git_url = target_str.startswith(("http://", "https://", "git@")) or target_str.endswith(".git")
+    is_git_url = (
+        target_str.startswith(("http://", "https://", "git@"))
+        or target_str.endswith(".git")
+        or "github.com" in target_str
+    )
+
+    # If not explicitly a URL, but doesn't exist locally and matches owner/repo pattern, treat as GitHub repo
+    if not is_git_url and not Path(target_str).exists() and "/" in target_str and not target_str.startswith((".", "/")):
+        is_git_url = True
 
     # Create initial scan job record
     scan = ScanJob(
@@ -85,25 +95,25 @@ async def submit_source_scan(
 
     temp_dir = None
     scan_path = target_str
-    repo_name = request.repository or (Path(target_str).name if not is_git_url else target_str.split("/")[-1].replace(".git", ""))
+    repo_name = request.repository
 
     try:
         if is_git_url:
-            temp_dir = tempfile.mkdtemp(prefix="ciphersight_git_")
-            scan_path = temp_dir
-            logger.info("Cloning Git repository %s into %s", target_str, temp_dir)
+            logger.info("Fetching remote Git/GitHub repository: %s", target_str)
             try:
-                subprocess.run(
-                    ["git", "clone", "--depth", "1", target_str, temp_dir],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                    timeout=120,
+                temp_dir, detected_name, _ = await GitHubRepositoryFetcher.fetch_codebase(
+                    target=target_str,
+                    branch=request.branch,
+                    token=request.token,
                 )
-            except (subprocess.SubprocessError, FileNotFoundError) as e:
+                scan_path = temp_dir
+                if not repo_name:
+                    repo_name = detected_name
+            except Exception as e:
+                logger.error("Failed to fetch repository codebase: %s", e)
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Failed to clone Git repository: {e}",
+                    detail=f"Failed to fetch repository codebase from GitHub: {e}",
                 )
         else:
             resolved_path = Path(target_str).resolve()
@@ -113,6 +123,8 @@ async def submit_source_scan(
                     detail=f"Local path does not exist: {target_str}",
                 )
             scan_path = str(resolved_path)
+            if not repo_name:
+                repo_name = Path(target_str).name
 
         # Execute Python source scanner
         scanner = PythonScanner()
@@ -212,6 +224,43 @@ async def submit_source_scan(
     finally:
         if temp_dir and Path(temp_dir).exists():
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@router.get("/github/info")
+async def get_github_repository_info(
+    url: str = Query(..., description="GitHub repository URL or owner/repo shorthand"),
+    token: Optional[str] = Query(None, description="Optional GitHub Personal Access Token"),
+):
+    """
+    Fetch metadata (stars, default branch, language, size, visibility) for a remote GitHub repository.
+    """
+    try:
+        owner, repo = GitHubRepositoryFetcher.parse_github_url(url)
+        info = await GitHubRepositoryFetcher.get_repository_info(owner, repo, token=token)
+        return info
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch repository metadata: {exc}")
+
+
+@router.post("/github", response_model=SourceScanDetailResponse)
+async def submit_github_scan(
+    request: GitHubScanCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Dedicated endpoint to fetch and scan a remote GitHub repository.
+    Downloads codebase via GitHub API archive (or git clone fallback) and audits
+    cryptographic primitives and post-quantum readiness.
+    """
+    source_request = SourceScanCreate(
+        path=request.url,
+        branch=request.branch,
+        token=request.token,
+        scan_depth=request.scan_depth,
+    )
+    return await submit_source_scan(source_request, db=db)
 
 
 @router.post("/container", response_model=SourceScanDetailResponse)

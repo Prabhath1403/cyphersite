@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     NEO4J_USER: str = "neo4j"
     NEO4J_PASSWORD: str = "cyphercite123"
 
+    # GitHub API
+    GITHUB_TOKEN: str = ""
+
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse CORS origins from comma-separated string."""

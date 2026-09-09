@@ -5,13 +5,25 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { createScan, submitSourceScan, submitContainerScan, submitBinaryScan } from '../api/client';
+import {
+  createScan,
+  submitSourceScan,
+  submitContainerScan,
+  submitBinaryScan,
+  getGitHubRepoInfo,
+} from '../api/client';
 
 export default function NewScan() {
   const navigate = useNavigate();
   const [scanType, setScanType] = useState('network'); // 'network' | 'source' | 'container' | 'binary'
   const [target, setTarget] = useState('');
   const [scanDepth, setScanDepth] = useState('quick');
+  const [gitBranch, setGitBranch] = useState('');
+  const [gitToken, setGitToken] = useState('');
+  const [showToken, setShowToken] = useState(false);
+  const [repoInfo, setRepoInfo] = useState(null);
+  const [isFetchingInfo, setIsFetchingInfo] = useState(false);
+  const [repoInfoError, setRepoInfoError] = useState('');
 
   const networkMutation = useMutation({
     mutationFn: createScan,
@@ -59,6 +71,33 @@ export default function NewScan() {
 
   const isPending = networkMutation.isPending || sourceMutation.isPending || containerMutation.isPending || binaryMutation.isPending;
 
+  const handleFetchRepoInfo = async () => {
+    if (!target.trim()) {
+      toast.error('Please enter a GitHub repository URL or owner/repo shorthand first');
+      return;
+    }
+    setIsFetchingInfo(true);
+    setRepoInfoError('');
+    try {
+      const info = await getGitHubRepoInfo({
+        url: target.trim(),
+        token: gitToken.trim() || undefined,
+      });
+      setRepoInfo(info);
+      if (!gitBranch && info.default_branch) {
+        setGitBranch(info.default_branch);
+      }
+      toast.success(`Verified repository: ${info.full_name}`);
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to fetch repository details from GitHub';
+      setRepoInfoError(msg);
+      toast.error(msg);
+      setRepoInfo(null);
+    } finally {
+      setIsFetchingInfo(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!target.trim()) {
@@ -71,7 +110,12 @@ export default function NewScan() {
     if (scanType === 'network') {
       networkMutation.mutate({ target: target.trim(), scan_depth: scanDepth });
     } else if (scanType === 'source') {
-      sourceMutation.mutate({ path: target.trim(), scan_depth: scanDepth });
+      sourceMutation.mutate({
+        path: target.trim(),
+        scan_depth: scanDepth,
+        branch: gitBranch.trim() || undefined,
+        token: gitToken.trim() || undefined,
+      });
     } else if (scanType === 'container') {
       containerMutation.mutate({ image: target.trim(), scan_depth: scanDepth });
     } else {
@@ -153,12 +197,16 @@ export default function NewScan() {
           <input
             type="text"
             value={target}
-            onChange={(e) => setTarget(e.target.value)}
+            onChange={(e) => {
+              setTarget(e.target.value);
+              setRepoInfo(null);
+              setRepoInfoError('');
+            }}
             placeholder={
               scanType === 'network'
                 ? 'e.g., example.com, 192.168.1.0/24, api.service.io'
                 : scanType === 'source'
-                ? 'e.g., /home/user/my-python-app, ./backend, or https://github.com/org/repo.git'
+                ? 'e.g., https://github.com/pallets/flask, owner/repo, or /path/to/project'
                 : scanType === 'container'
                 ? 'e.g., ubuntu:22.04, ./image.tar, or /var/lib/rootfs'
                 : 'e.g., /usr/bin/app, ./libcrypto.so, /path/to/binaries, or ./app.tar'
@@ -169,11 +217,135 @@ export default function NewScan() {
           />
           <p className="text-xs text-gray-500 mt-2">
             {scanType === 'network' && 'Accepts domain names, IP addresses, or CIDR ranges'}
-            {scanType === 'source' && 'Accepts local filesystem directory paths or public/private Git repository URLs'}
+            {scanType === 'source' && 'Accepts GitHub URLs, owner/repo shorthands, or local directory paths'}
             {scanType === 'container' && 'Accepts Docker image names/tags, OCI .tar archives, or unpacked rootfs folders'}
             {scanType === 'binary' && 'Accepts single binary executables, shared libraries (.so/.dll/.dylib), or directories'}
           </p>
         </div>
+
+        {/* Source Code / GitHub Repository Configuration */}
+        {scanType === 'source' && (
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span className="flex items-center gap-1.5 font-medium text-cyan-300">
+                <span>🐙</span> GitHub & Git Remote Settings
+              </span>
+              <button
+                type="button"
+                onClick={handleFetchRepoInfo}
+                disabled={isFetchingInfo || !target.trim()}
+                className="px-3 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/30 font-medium transition flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                id="verify-github-repo-btn"
+              >
+                {isFetchingInfo ? (
+                  <>
+                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Verifying Repo...
+                  </>
+                ) : (
+                  '🔍 Verify / Preview Repo'
+                )}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Branch / Ref */}
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Branch / Tag / Ref (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={gitBranch}
+                  onChange={(e) => setGitBranch(e.target.value)}
+                  placeholder="e.g. main, master, v1.0.0"
+                  className="input-field text-sm"
+                  id="github-branch-input"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Defaults to the repository default branch
+                </p>
+              </div>
+
+              {/* Personal Access Token */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-gray-300">
+                    GitHub Token / PAT (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowToken(!showToken)}
+                    className="text-[11px] text-cyan-400 hover:underline"
+                  >
+                    {showToken ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <input
+                  type={showToken ? 'text' : 'password'}
+                  value={gitToken}
+                  onChange={(e) => setGitToken(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                  className="input-field text-sm font-mono"
+                  id="github-token-input"
+                />
+                <p className="text-[11px] text-gray-500 mt-1">
+                  Required for private repos or to avoid API rate limits
+                </p>
+              </div>
+            </div>
+
+            {/* Error badge if repo info failed */}
+            {repoInfoError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
+                <span>⚠️</span>
+                <span>{repoInfoError}</span>
+              </div>
+            )}
+
+            {/* Repository Info Preview Card */}
+            {repoInfo && (
+              <div className="p-4 rounded-xl bg-navy-900/80 border border-cyan-500/40 space-y-2.5 shadow-glow-cyan animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🐙</span>
+                    <a
+                      href={repoInfo.html_url || `https://github.com/${repoInfo.owner}/${repoInfo.repo}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-cyan-300 hover:underline flex items-center gap-1 text-sm"
+                    >
+                      {repoInfo.full_name}
+                      <span className="text-xs text-gray-400">↗</span>
+                    </a>
+                  </div>
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium ${
+                      repoInfo.is_private
+                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                    }`}
+                  >
+                    {repoInfo.is_private ? '🔒 Private' : '🌐 Public'}
+                  </span>
+                </div>
+                {repoInfo.description && (
+                  <p className="text-xs text-gray-300 line-clamp-2">{repoInfo.description}</p>
+                )}
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1 border-t border-white/5 font-mono">
+                  <span>🌿 Branch: <strong className="text-cyan-300">{repoInfo.default_branch}</strong></span>
+                  <span>⭐ {repoInfo.stars?.toLocaleString() ?? 0}</span>
+                  <span>🍴 {repoInfo.forks?.toLocaleString() ?? 0}</span>
+                  {repoInfo.language && <span>💻 {repoInfo.language}</span>}
+                  {repoInfo.size_kb > 0 && <span>💾 {(repoInfo.size_kb / 1024).toFixed(1)} MB</span>}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Scan Depth Toggle */}
         <div>

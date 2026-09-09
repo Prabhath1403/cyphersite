@@ -25,6 +25,8 @@ class SourceScanCreate(BaseModel):
     """Schema for submitting a source code scan."""
     path: str = Field(..., description="Local directory path, file path, or Git repository URL", min_length=1)
     repository: Optional[str] = Field(None, description="Repository identifier or display name")
+    branch: Optional[str] = Field(None, description="Git branch or tag to scan (e.g. main, master)")
+    token: Optional[str] = Field(None, description="Optional GitHub Personal Access Token for private repositories or rate limit bypass")
     scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
 
 
@@ -39,6 +41,14 @@ class BinaryScanCreate(BaseModel):
     """Schema for submitting a compiled binary scan."""
     path: str = Field(..., description="Binary file path, archive (.tar, .zip, .a), or directory containing binaries", min_length=1)
     repository: Optional[str] = Field(None, description="Repository or binary collection identifier")
+    scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
+
+
+class GitHubScanCreate(BaseModel):
+    """Schema for submitting a remote GitHub repository scan."""
+    url: str = Field(..., description="GitHub repository URL (e.g. https://github.com/owner/repo) or shorthand 'owner/repo'", min_length=1)
+    branch: Optional[str] = Field(None, description="Branch or commit ref to scan (defaults to repository default branch)")
+    token: Optional[str] = Field(None, description="Optional GitHub Personal Access Token for private repositories or rate limit bypass")
     scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
 
 

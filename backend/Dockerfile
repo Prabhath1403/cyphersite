@@ -4,6 +4,8 @@ WORKDIR /app
 
 # Install system dependencies for nmap, sslyze, etc.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
     nmap \
     libpq-dev \
     gcc \
