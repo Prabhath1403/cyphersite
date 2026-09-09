@@ -48,6 +48,29 @@ export const downloadCBOM = async (scanId, format) => {
   window.URL.revokeObjectURL(url);
 };
 
+// === Graph ===
+export const getGraph = (params) => api.get('/graph', { params }).then((r) => r.data);
+export const getScanGraph = (scanId) => api.get(`/graph/${scanId}`).then((r) => r.data);
+
+// === Risk ===
+export const evaluateRisk = (data) => api.post('/risk/evaluate', data).then((r) => r.data);
+export const getScanRisk = (scanId) => api.get(`/risk/scan/${scanId}`).then((r) => r.data);
+
+// === Migration ===
+export const getMigrationPlan = (scanId) => api.get(`/migration/plan/${scanId}`).then((r) => r.data);
+export const getMigrationRecommendation = (data) => api.post('/migration/recommend', data).then((r) => r.data);
+
+// === Remediation ===
+export const getIssuePreview = (findingId) => api.get(`/remediation/finding/${findingId}/issue-preview`).then((r) => r.data);
+export const exportIssues = (scanId) => api.get(`/remediation/scan/${scanId}/export-issues`).then((r) => r.data);
+export const publishGitHubIssue = (data) => api.post('/remediation/publish', data).then((r) => r.data);
+
+// === AI Cryptographic Explanation ===
+export const explainFinding = (data) => api.post('/ai/explain', data).then((r) => r.data);
+export const getFindingExplanation = (findingId, params) => api.get(`/ai/finding/${findingId}`, { params }).then((r) => r.data);
+export const getScanAISummary = (scanId, params) => api.get(`/ai/scan/${scanId}/summary`, { params }).then((r) => r.data);
+export const queryAI = (data) => api.post('/ai/query', data).then((r) => r.data);
+
 // === Certificates ===
 export const getCertificate = (assetId) => api.get(`/certificates/${assetId}`).then((r) => r.data);
 export const verifyCertificate = (certId) => api.get(`/certificates/verify/${certId}`).then((r) => r.data);

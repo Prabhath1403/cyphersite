@@ -5,10 +5,18 @@ import NewScan from './pages/NewScan';
 import ScanDetail from './pages/ScanDetail';
 import AssetDetail from './pages/AssetDetail';
 import CBOMReport from './pages/CBOMReport';
+import CryptoInventory from './pages/CryptoInventory';
+import DependencyGraph from './pages/DependencyGraph';
+import MigrationRoadmap from './pages/MigrationRoadmap';
+import AIAdvisor from './pages/AIAdvisor';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: '📊' },
   { path: '/scan/new', label: 'New Scan', icon: '🔍' },
+  { path: '/inventory', label: 'Crypto Inventory', icon: '📦' },
+  { path: '/graph', label: 'Topology Graph', icon: '🕸️' },
+  { path: '/roadmap', label: 'Migration Roadmap', icon: '🚀' },
+  { path: '/ai', label: 'AI Advisor', icon: '🧠' },
 ];
 
 function Sidebar() {
@@ -72,6 +80,10 @@ export default function App() {
           <Route path="/scan/:scanId" element={<ScanDetail />} />
           <Route path="/asset/:assetId" element={<AssetDetail />} />
           <Route path="/cbom/:scanId" element={<CBOMReport />} />
+          <Route path="/inventory" element={<CryptoInventory />} />
+          <Route path="/graph" element={<DependencyGraph />} />
+          <Route path="/roadmap" element={<MigrationRoadmap />} />
+          <Route path="/ai" element={<AIAdvisor />} />
         </Routes>
       </main>
     </div>
