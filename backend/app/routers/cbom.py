@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/cbom", tags=["cbom"])
 @router.get("/{scan_id}")
 async def get_cbom(
     scan_id: UUID,
-    format: str = Query(default="json", regex="^(json|csv|pdf)$"),
+    format: str = Query(default="json", pattern="^(json|csv|pdf)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """

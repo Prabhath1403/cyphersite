@@ -7,7 +7,7 @@ representing each asset's cryptographic posture.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Dict, Any, Optional
 from uuid import uuid4
 
@@ -37,7 +37,7 @@ def build_cbom(
         CycloneDX CBOM dictionary.
     """
     if scan_timestamp is None:
-        scan_timestamp = datetime.utcnow().isoformat() + "Z"
+        scan_timestamp = datetime.now(timezone.utc).isoformat()
 
     # Normalize incoming assets to dicts
     normalized_assets = []
