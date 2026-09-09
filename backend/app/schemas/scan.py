@@ -28,6 +28,13 @@ class SourceScanCreate(BaseModel):
     scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
 
 
+class ContainerScanCreate(BaseModel):
+    """Schema for submitting a container image scan."""
+    image: str = Field(..., description="Container image tag, tar archive path, or rootfs directory path", min_length=1)
+    repository: Optional[str] = Field(None, description="Repository or image tag identifier")
+    scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
+
+
 class ScanStatusResponse(BaseModel):
     """Schema for scan creation response."""
     scan_id: UUID

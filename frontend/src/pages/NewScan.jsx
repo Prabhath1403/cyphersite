@@ -5,11 +5,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { createScan, submitSourceScan } from '../api/client';
+import { createScan, submitSourceScan, submitContainerScan } from '../api/client';
 
 export default function NewScan() {
   const navigate = useNavigate();
-  const [scanType, setScanType] = useState('network'); // 'network' | 'source'
+  const [scanType, setScanType] = useState('network'); // 'network' | 'source' | 'container'
   const [target, setTarget] = useState('');
   const [scanDepth, setScanDepth] = useState('quick');
 
@@ -35,18 +35,33 @@ export default function NewScan() {
     },
   });
 
-  const isPending = networkMutation.isPending || sourceMutation.isPending;
+  const containerMutation = useMutation({
+    mutationFn: submitContainerScan,
+    onSuccess: (data) => {
+      toast.success(`Container scan complete! Discovered ${data.total_assets} crypto components.`);
+      navigate(`/scan/${data.id}`);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.detail || 'Failed to scan container image');
+    },
+  });
+
+  const isPending = networkMutation.isPending || sourceMutation.isPending || containerMutation.isPending;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!target.trim()) {
-      toast.error(scanType === 'network' ? 'Please enter a target domain/IP' : 'Please enter a repo path or Git URL');
+      if (scanType === 'network') toast.error('Please enter a target domain/IP');
+      else if (scanType === 'source') toast.error('Please enter a repo path or Git URL');
+      else toast.error('Please enter an image tag, tarball path, or rootfs');
       return;
     }
     if (scanType === 'network') {
       networkMutation.mutate({ target: target.trim(), scan_depth: scanDepth });
-    } else {
+    } else if (scanType === 'source') {
       sourceMutation.mutate({ path: target.trim(), scan_depth: scanDepth });
+    } else {
+      containerMutation.mutate({ image: target.trim(), scan_depth: scanDepth });
     }
   };
 
@@ -56,9 +71,9 @@ export default function NewScan() {
       <div>
         <h1 className="page-header">New Scan</h1>
         <p className="text-gray-400 mt-1">
-          {scanType === 'network'
-            ? 'Discover public TLS endpoints and evaluate Post-Quantum Cryptography posture'
-            : 'Scan source code repositories to audit cryptographic libraries, ciphers, and algorithms'}
+          {scanType === 'network' && 'Discover public TLS endpoints and evaluate Post-Quantum Cryptography posture'}
+          {scanType === 'source' && 'Scan source code repositories to audit cryptographic libraries, ciphers, and algorithms'}
+          {scanType === 'container' && 'Audit container images and packages for post-quantum security and cryptographic libraries'}
         </p>
       </div>
 
@@ -73,7 +88,7 @@ export default function NewScan() {
               : 'text-gray-400 hover:text-gray-200'
           }`}
         >
-          <span>🌐</span> Network Endpoints
+          <span>🌐</span> Network
         </button>
         <button
           type="button"
@@ -84,7 +99,18 @@ export default function NewScan() {
               : 'text-gray-400 hover:text-gray-200'
           }`}
         >
-          <span>💻</span> Source Code Repository
+          <span>💻</span> Source Code
+        </button>
+        <button
+          type="button"
+          onClick={() => { setScanType('container'); setScanDepth('standard'); }}
+          className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+            scanType === 'container'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <span>🐳</span> Container Image
         </button>
       </div>
 
@@ -93,7 +119,9 @@ export default function NewScan() {
         {/* Target Input */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            {scanType === 'network' ? 'Target Domain / IP / CIDR' : 'Repository Path or Git Clone URL'}
+            {scanType === 'network' && 'Target Domain / IP / CIDR'}
+            {scanType === 'source' && 'Repository Path or Git Clone URL'}
+            {scanType === 'container' && 'Container Image (Tag, Tarball Path, or Rootfs)'}
           </label>
           <input
             type="text"
@@ -102,16 +130,18 @@ export default function NewScan() {
             placeholder={
               scanType === 'network'
                 ? 'e.g., example.com, 192.168.1.0/24, api.service.io'
-                : 'e.g., /home/user/my-python-app, ./backend, or https://github.com/org/repo.git'
+                : scanType === 'source'
+                ? 'e.g., /home/user/my-python-app, ./backend, or https://github.com/org/repo.git'
+                : 'e.g., ubuntu:22.04, ./image.tar, or /var/lib/rootfs'
             }
             className="input-field text-lg"
             autoFocus
             id="scan-target-input"
           />
           <p className="text-xs text-gray-500 mt-2">
-            {scanType === 'network'
-              ? 'Accepts domain names, IP addresses, or CIDR ranges'
-              : 'Accepts local filesystem directory paths or public/private Git repository URLs'}
+            {scanType === 'network' && 'Accepts domain names, IP addresses, or CIDR ranges'}
+            {scanType === 'source' && 'Accepts local filesystem directory paths or public/private Git repository URLs'}
+            {scanType === 'container' && 'Accepts Docker image names/tags, OCI .tar archives, or unpacked rootfs folders'}
           </p>
         </div>
 
@@ -140,13 +170,13 @@ export default function NewScan() {
                   {
                     value: 'standard',
                     label: '⚡ Standard Scan',
-                    desc: 'AST cryptographic API detection',
+                    desc: scanType === 'source' ? 'AST cryptographic API detection' : 'Layer & package DB inspection',
                     time: '~1-5 seconds',
                   },
                   {
                     value: 'deep',
                     label: '🔬 Deep Audit',
-                    desc: 'Full recursive code analysis',
+                    desc: scanType === 'source' ? 'Full recursive code analysis' : 'Full binary & cert extraction',
                     time: '~10-30 seconds',
                   },
                 ]
@@ -183,10 +213,12 @@ export default function NewScan() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              {scanType === 'network' ? 'Queuing Network Scan...' : 'Scanning Source Code...'}
+              {scanType === 'network' && 'Queuing Network Scan...'}
+              {scanType === 'source' && 'Scanning Source Code...'}
+              {scanType === 'container' && 'Scanning Container Image...'}
             </span>
           ) : (
-            `🚀 Start ${scanType === 'network' ? 'Network' : 'Source'} Scan`
+            `🚀 Start ${scanType === 'network' ? 'Network' : scanType === 'source' ? 'Source' : 'Container'} Scan`
           )}
         </button>
       </form>
@@ -199,10 +231,16 @@ export default function NewScan() {
               { icon: '🔐', title: 'TLS Analysis', desc: 'Deep cipher suite & certificate inspection' },
               { icon: '⚛️', title: 'PQC Assessment', desc: 'NIST FIPS 203/204/205 compliance check' },
             ]
-          : [
+          : scanType === 'source'
+          ? [
               { icon: '🐍', title: 'Python AST', desc: 'Deterministic AST analysis of crypto libraries and API calls' },
               { icon: '📜', title: 'CBOM 1.5', desc: 'Automated CycloneDX Cryptographic Bill of Materials generation' },
               { icon: '⚛️', title: 'Quantum Audit', desc: 'Evaluates Shor’s & Grover’s attack vulnerabilities' },
+            ]
+          : [
+              { icon: '📦', title: 'Package DBs', desc: 'Audits dpkg, apk, rpm, and site-packages databases' },
+              { icon: '📂', title: 'Layer Inspection', desc: 'Extracts shared crypto binaries (.so) and root certificates' },
+              { icon: '⚛️', title: 'PQC Readiness', desc: 'Classifies OpenSSL 3.x, liboqs, and crypto posture' },
             ]
         ).map(({ icon, title, desc }) => (
           <div key={title} className="glass-card p-5">
