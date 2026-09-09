@@ -1,5 +1,6 @@
 """Database engine, session, and base model configuration."""
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -39,6 +40,26 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    """Create all database tables (for development)."""
+    """Create all database tables and apply non-destructive schema migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Auto-migrate any columns added across platform phases for existing volumes
+        await conn.execute(
+            text("ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS scan_type VARCHAR(50) NOT NULL DEFAULT 'network';")
+        )
+        await conn.execute(
+            text("""
+                ALTER TABLE crypto_assets
+                  ADD COLUMN IF NOT EXISTS primitive VARCHAR(30),
+                  ADD COLUMN IF NOT EXISTS mode VARCHAR(30),
+                  ADD COLUMN IF NOT EXISTS padding VARCHAR(30),
+                  ADD COLUMN IF NOT EXISTS usage VARCHAR(50),
+                  ADD COLUMN IF NOT EXISTS repository VARCHAR(500),
+                  ADD COLUMN IF NOT EXISTS confidence FLOAT,
+                  ADD COLUMN IF NOT EXISTS evidence JSONB,
+                  ADD COLUMN IF NOT EXISTS quantum_status VARCHAR(30),
+                  ADD COLUMN IF NOT EXISTS risk_level VARCHAR(10),
+                  ADD COLUMN IF NOT EXISTS sensitivity VARCHAR(30),
+                  ADD COLUMN IF NOT EXISTS sensitivity_confidence FLOAT;
+            """)
+        )
