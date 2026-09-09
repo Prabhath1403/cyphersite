@@ -35,6 +35,13 @@ class ContainerScanCreate(BaseModel):
     scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
 
 
+class BinaryScanCreate(BaseModel):
+    """Schema for submitting a compiled binary scan."""
+    path: str = Field(..., description="Binary file path, archive (.tar, .zip, .a), or directory containing binaries", min_length=1)
+    repository: Optional[str] = Field(None, description="Repository or binary collection identifier")
+    scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
+
+
 class ScanStatusResponse(BaseModel):
     """Schema for scan creation response."""
     scan_id: UUID
