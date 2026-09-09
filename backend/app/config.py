@@ -31,6 +31,12 @@ class Settings(BaseSettings):
     # Artifacts
     ARTIFACTS_DIR: str = "/app/artifacts"
 
+    # AI Explanation Agent
+    AI_PROVIDER: str = "deterministic"
+    AI_API_KEY: str = ""
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_API_BASE: str = "https://api.openai.com/v1"
+
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse CORS origins from comma-separated string."""

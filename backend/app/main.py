@@ -15,7 +15,10 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import init_db
-from app.routers import scans, assets, cbom, certificates, ws, crypto_assets, source_scan, graph, risk, migration, remediation
+from app.routers import (
+    scans, assets, cbom, certificates, ws, crypto_assets,
+    source_scan, graph, risk, migration, remediation, ai_explain
+)
 
 # CRITICAL: Import all models so Base.metadata knows about them
 # before init_db() calls create_all(). Without this, no tables are created.
@@ -77,6 +80,7 @@ app.include_router(graph.router)
 app.include_router(risk.router)
 app.include_router(migration.router)
 app.include_router(remediation.router)
+app.include_router(ai_explain.router)
 
 # Mount artifacts directory for badge/QR serving
 if os.path.exists(settings.ARTIFACTS_DIR):
