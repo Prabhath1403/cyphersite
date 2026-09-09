@@ -531,6 +531,18 @@ def run_full_scan(self, scan_id: str, target: str, scan_depth: str = "quick"):
                 vulnerable += 1
 
         session.commit()
+
+        # Convert and persist canonical CryptoAssets for unified querying and CBOM
+        try:
+            from app.core.converter import crypto_assets_from_network_assets
+            crypto_records = crypto_assets_from_network_assets(asset_records)
+            for cr in crypto_records:
+                session.add(cr)
+            session.commit()
+            logger.info("Persisted %d canonical CryptoAsset records for scan %s", len(crypto_records), scan_id)
+        except Exception as conv_err:
+            logger.warning("Failed to create CryptoAsset records from network assets: %s", conv_err)
+
         emit_progress(scan_id, "pqc_check", 75, "PQC assessment complete")
 
         # === Step 4: CBOM Generation (75-90%) ===

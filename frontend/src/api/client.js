@@ -15,6 +15,9 @@ export const createScan = (data) => api.post('/scans', data).then((r) => r.data)
 export const getScans = (params) => api.get('/scans', { params }).then((r) => r.data);
 export const getScan = (scanId) => api.get(`/scans/${scanId}`).then((r) => r.data);
 export const getDashboardStats = () => api.get('/scans/dashboard').then((r) => r.data);
+export const submitSourceScan = (data) => api.post('/scan/source', data).then((r) => r.data);
+export const getScanDetails = (scanId) => api.get(`/scan/${scanId}`).then((r) => r.data);
+export const getScanCoverage = (scanId) => api.get(`/scan/${scanId}/coverage`).then((r) => r.data);
 
 // === Assets ===
 export const getAssets = (params) => api.get('/assets', { params }).then((r) => r.data);

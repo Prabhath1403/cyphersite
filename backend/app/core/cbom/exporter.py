@@ -62,16 +62,27 @@ def export_csv(cbom: dict) -> str:
         protocol_props = crypto_props.get("protocolProperties", {})
         cipher_count = len(protocol_props.get("cipherSuites", []))
 
+        # Check for source code vs network
+        file_path = props.get("ciphersight:file_path", "")
+        line_num = props.get("ciphersight:line_number", "")
+        loc_str = f"{file_path}:{line_num}" if file_path and line_num else file_path
+
+        version_or_loc = loc_str if loc_str else protocol_props.get("version", "")
+        kex_or_usage = props.get("ciphersight:usage") or props.get("ciphersight:key_exchange", "")
+        algo = props.get("ciphersight:algorithm") or props.get("ciphersight:certificate_algorithm", "")
+        key_size = props.get("ciphersight:key_size") or props.get("ciphersight:certificate_key_size", "")
+        svc_or_src = props.get("ciphersight:service_type") or props.get("ciphersight:source_type", "")
+
         writer.writerow([
             component.get("name", ""),
             component.get("type", ""),
             props.get("ciphersight:pqc_status", ""),
             props.get("ciphersight:risk_score", ""),
-            props.get("ciphersight:service_type", ""),
-            protocol_props.get("version", ""),
-            props.get("ciphersight:key_exchange", ""),
-            props.get("ciphersight:certificate_algorithm", ""),
-            props.get("ciphersight:certificate_key_size", ""),
+            svc_or_src,
+            version_or_loc,
+            kex_or_usage,
+            algo,
+            key_size,
             cipher_count,
         ])
 
@@ -122,11 +133,17 @@ def extract_summary_data(cbom: dict) -> Dict[str, Any]:
         status_counts[status] = status_counts.get(status, 0) + 1
         total_risk += risk
 
-        # Collect algorithms
+        # Collect algorithms from protocol properties (network) and algorithm properties (source)
         crypto_props = comp.get("cryptoProperties", {})
         for suite in crypto_props.get("protocolProperties", {}).get("cipherSuites", []):
             for algo in suite.get("algorithms", []):
                 algorithms_seen.add(algo)
+
+        algo_prop = crypto_props.get("algorithmProperties", {}).get("name")
+        if algo_prop:
+            algorithms_seen.add(algo_prop)
+        elif props.get("ciphersight:algorithm"):
+            algorithms_seen.add(props["ciphersight:algorithm"])
 
     avg_risk = total_risk / max(len(components), 1)
 

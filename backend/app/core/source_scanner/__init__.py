@@ -79,6 +79,18 @@ class CryptoFindingData:
     confidence: float = 1.0
     evidence: Optional[dict] = None    # code snippet, matched pattern, etc.
 
+    # ── Security / PQC assessment ─────────────────────────────────────────
+    pqc_status: Optional[str] = None       # QUANTUM_SAFE | HYBRID_READY | VULNERABLE | UNKNOWN
+    quantum_status: Optional[str] = None   # safe | reduced_security_margin | vulnerable | unknown
+    risk_score: Optional[float] = None     # 0.0 - 100.0
+    risk_level: Optional[str] = None       # CRITICAL | HIGH | MEDIUM | LOW | INFO
+    vulnerabilities: Optional[List[str]] = None
+    recommendations: Optional[List[str]] = None
+
+    # ── Sensitivity ───────────────────────────────────────────────────────
+    sensitivity: Optional[str] = None
+    sensitivity_confidence: Optional[float] = None
+
     # ── Extra ─────────────────────────────────────────────────────────────
     details: Optional[dict] = None
 

@@ -5,31 +5,49 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { createScan } from '../api/client';
+import { createScan, submitSourceScan } from '../api/client';
 
 export default function NewScan() {
   const navigate = useNavigate();
+  const [scanType, setScanType] = useState('network'); // 'network' | 'source'
   const [target, setTarget] = useState('');
   const [scanDepth, setScanDepth] = useState('quick');
 
-  const mutation = useMutation({
+  const networkMutation = useMutation({
     mutationFn: createScan,
     onSuccess: (data) => {
-      toast.success('Scan queued successfully!');
+      toast.success('Network scan queued successfully!');
       navigate(`/scan/${data.scan_id}`);
     },
     onError: (err) => {
-      toast.error(err.response?.data?.detail || 'Failed to create scan');
+      toast.error(err.response?.data?.detail || 'Failed to create network scan');
     },
   });
+
+  const sourceMutation = useMutation({
+    mutationFn: submitSourceScan,
+    onSuccess: (data) => {
+      toast.success(`Source scan complete! Found ${data.total_assets} cryptographic usages.`);
+      navigate(`/scan/${data.id}`);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.detail || 'Failed to scan source code');
+    },
+  });
+
+  const isPending = networkMutation.isPending || sourceMutation.isPending;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!target.trim()) {
-      toast.error('Please enter a target');
+      toast.error(scanType === 'network' ? 'Please enter a target domain/IP' : 'Please enter a repo path or Git URL');
       return;
     }
-    mutation.mutate({ target: target.trim(), scan_depth: scanDepth });
+    if (scanType === 'network') {
+      networkMutation.mutate({ target: target.trim(), scan_depth: scanDepth });
+    } else {
+      sourceMutation.mutate({ path: target.trim(), scan_depth: scanDepth });
+    }
   };
 
   return (
@@ -37,7 +55,37 @@ export default function NewScan() {
       {/* Header */}
       <div>
         <h1 className="page-header">New Scan</h1>
-        <p className="text-gray-400 mt-1">Enter a target to scan for PQC readiness</p>
+        <p className="text-gray-400 mt-1">
+          {scanType === 'network'
+            ? 'Discover public TLS endpoints and evaluate Post-Quantum Cryptography posture'
+            : 'Scan source code repositories to audit cryptographic libraries, ciphers, and algorithms'}
+        </p>
+      </div>
+
+      {/* Mode Selector Tabs */}
+      <div className="flex rounded-xl bg-navy-800/60 p-1 border border-white/10">
+        <button
+          type="button"
+          onClick={() => { setScanType('network'); setScanDepth('quick'); }}
+          className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+            scanType === 'network'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <span>🌐</span> Network Endpoints
+        </button>
+        <button
+          type="button"
+          onClick={() => { setScanType('source'); setScanDepth('standard'); }}
+          className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-300 flex items-center justify-center gap-2 ${
+            scanType === 'source'
+              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <span>💻</span> Source Code Repository
+        </button>
       </div>
 
       {/* Form */}
@@ -45,19 +93,25 @@ export default function NewScan() {
         {/* Target Input */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Target Domain / IP / CIDR
+            {scanType === 'network' ? 'Target Domain / IP / CIDR' : 'Repository Path or Git Clone URL'}
           </label>
           <input
             type="text"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            placeholder="e.g., example.com, 192.168.1.0/24, api.service.io"
+            placeholder={
+              scanType === 'network'
+                ? 'e.g., example.com, 192.168.1.0/24, api.service.io'
+                : 'e.g., /home/user/my-python-app, ./backend, or https://github.com/org/repo.git'
+            }
             className="input-field text-lg"
             autoFocus
             id="scan-target-input"
           />
           <p className="text-xs text-gray-500 mt-2">
-            Accepts domain names, IP addresses, or CIDR ranges
+            {scanType === 'network'
+              ? 'Accepts domain names, IP addresses, or CIDR ranges'
+              : 'Accepts local filesystem directory paths or public/private Git repository URLs'}
           </p>
         </div>
 
@@ -67,20 +121,36 @@ export default function NewScan() {
             Scan Depth
           </label>
           <div className="grid grid-cols-2 gap-4">
-            {[
-              {
-                value: 'quick',
-                label: '⚡ Quick Scan',
-                desc: 'Target only, common TLS ports',
-                time: '~30 seconds',
-              },
-              {
-                value: 'full',
-                label: '🔬 Full Scan',
-                desc: 'Subdomain enum + deep TLS analysis',
-                time: '~2-5 minutes',
-              },
-            ].map(({ value, label, desc, time }) => (
+            {(scanType === 'network'
+              ? [
+                  {
+                    value: 'quick',
+                    label: '⚡ Quick Scan',
+                    desc: 'Target only, common TLS ports',
+                    time: '~30 seconds',
+                  },
+                  {
+                    value: 'full',
+                    label: '🔬 Full Scan',
+                    desc: 'Subdomain enum + deep TLS analysis',
+                    time: '~2-5 minutes',
+                  },
+                ]
+              : [
+                  {
+                    value: 'standard',
+                    label: '⚡ Standard Scan',
+                    desc: 'AST cryptographic API detection',
+                    time: '~1-5 seconds',
+                  },
+                  {
+                    value: 'deep',
+                    label: '🔬 Deep Audit',
+                    desc: 'Full recursive code analysis',
+                    time: '~10-30 seconds',
+                  },
+                ]
+            ).map(({ value, label, desc, time }) => (
               <button
                 key={value}
                 type="button"
@@ -103,31 +173,38 @@ export default function NewScan() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={mutation.isPending || !target.trim()}
+          disabled={isPending || !target.trim()}
           className="btn-primary w-full text-lg py-4"
           id="start-scan-btn"
         >
-          {mutation.isPending ? (
+          {isPending ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Queuing Scan...
+              {scanType === 'network' ? 'Queuing Network Scan...' : 'Scanning Source Code...'}
             </span>
           ) : (
-            '🚀 Start Scan'
+            `🚀 Start ${scanType === 'network' ? 'Network' : 'Source'} Scan`
           )}
         </button>
       </form>
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { icon: '🔍', title: 'Discovery', desc: 'DNS + port scanning to find all TLS endpoints' },
-          { icon: '🔐', title: 'TLS Analysis', desc: 'Deep cipher suite & certificate inspection' },
-          { icon: '⚛️', title: 'PQC Assessment', desc: 'NIST FIPS 203/204/205 compliance check' },
-        ].map(({ icon, title, desc }) => (
+        {(scanType === 'network'
+          ? [
+              { icon: '🔍', title: 'Discovery', desc: 'DNS + port scanning to find all TLS endpoints' },
+              { icon: '🔐', title: 'TLS Analysis', desc: 'Deep cipher suite & certificate inspection' },
+              { icon: '⚛️', title: 'PQC Assessment', desc: 'NIST FIPS 203/204/205 compliance check' },
+            ]
+          : [
+              { icon: '🐍', title: 'Python AST', desc: 'Deterministic AST analysis of crypto libraries and API calls' },
+              { icon: '📜', title: 'CBOM 1.5', desc: 'Automated CycloneDX Cryptographic Bill of Materials generation' },
+              { icon: '⚛️', title: 'Quantum Audit', desc: 'Evaluates Shor’s & Grover’s attack vulnerabilities' },
+            ]
+        ).map(({ icon, title, desc }) => (
           <div key={title} className="glass-card p-5">
             <span className="text-2xl">{icon}</span>
             <h3 className="font-semibold text-gray-200 mt-2">{title}</h3>

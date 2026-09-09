@@ -24,6 +24,7 @@ class ScanJob(Base):
         index=True,
     )  # queued, running, completed, failed
     scan_depth = Column(String(10), nullable=False, default="quick")  # quick, full
+    scan_type = Column(String(50), nullable=False, default="network")  # network, source, container, binary
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at = Column(DateTime, nullable=True)
     total_assets = Column(Integer, default=0)

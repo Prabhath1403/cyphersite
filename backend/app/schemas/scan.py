@@ -21,6 +21,13 @@ class ScanCreate(BaseModel):
         return normalize_target_input(value)
 
 
+class SourceScanCreate(BaseModel):
+    """Schema for submitting a source code scan."""
+    path: str = Field(..., description="Local directory path, file path, or Git repository URL", min_length=1)
+    repository: Optional[str] = Field(None, description="Repository identifier or display name")
+    scan_depth: str = Field(default="standard", description="Scan depth: quick, standard, deep")
+
+
 class ScanStatusResponse(BaseModel):
     """Schema for scan creation response."""
     scan_id: UUID
@@ -33,6 +40,7 @@ class ScanSummary(BaseModel):
     target: str
     status: str
     scan_depth: str
+    scan_type: str = "network"
     created_at: datetime
     completed_at: Optional[datetime] = None
     total_assets: int = 0

@@ -229,6 +229,40 @@ class CryptoCallVisitor(ast.NodeVisitor):
         elif self._current_class:
             func_context = self._current_class
 
+        # Determine PQC status and risk metrics based on rule quantum classification
+        vulns = []
+        recs = []
+        if rule.quantum == "vulnerable":
+            pqc_status = "VULNERABLE"
+            quantum_status = "vulnerable"
+            is_broken = rule.algorithm in ("MD5", "DES", "3DES", "RC4", "SHA1") or rule.mode == "ECB"
+            risk_score = 95.0 if is_broken else 85.0
+            risk_level = "CRITICAL" if is_broken else "HIGH"
+            if is_broken:
+                vulns.append(f"{rule.algorithm} is cryptographically weak / broken")
+                recs.append(f"Replace {rule.algorithm} with modern secure cryptographic primitives (e.g., SHA-256, AES-256-GCM)")
+            else:
+                vulns.append(f"{rule.algorithm} is vulnerable to quantum cryptanalysis (Shor's algorithm)")
+                recs.append(f"Plan migration to NIST post-quantum standards (ML-KEM FIPS 203 or ML-DSA FIPS 204)")
+        elif rule.quantum == "reduced_security_margin":
+            pqc_status = "HYBRID_READY"
+            quantum_status = "reduced_security_margin"
+            risk_score = 40.0
+            risk_level = "MEDIUM"
+            vulns.append(f"{rule.algorithm} provides reduced security margin under Grover's quantum search algorithm")
+            recs.append("Ensure key size or digest length is at least 256 bits for quantum safety")
+        elif rule.quantum == "safe":
+            pqc_status = "QUANTUM_SAFE"
+            quantum_status = "safe"
+            risk_score = 10.0
+            risk_level = "LOW"
+            recs.append("Algorithm is quantum safe; ensure proper implementation hygiene")
+        else:
+            pqc_status = "UNKNOWN"
+            quantum_status = "unknown"
+            risk_score = 50.0
+            risk_level = "MEDIUM"
+
         finding = CryptoFindingData(
             name=rule.algorithm,
             asset_type="source_code_usage",
@@ -247,6 +281,12 @@ class CryptoCallVisitor(ast.NodeVisitor):
             language="python",
             repository=self.repository,
             confidence=rule.confidence,
+            pqc_status=pqc_status,
+            quantum_status=quantum_status,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            vulnerabilities=vulns,
+            recommendations=recs,
             evidence={
                 "type": "ast_match",
                 "resolved_call": resolved,
