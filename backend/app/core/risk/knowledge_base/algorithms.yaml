@@ -1,0 +1,97 @@
+# Cryptographic Knowledge Base — Quantum Vulnerabilities and Regulatory Mandates
+algorithms:
+  RSA:
+    family: "Public Key Cryptography"
+    primitive: "asymmetric"
+    quantum_break_method: "Shor's Algorithm (Order Finding)"
+    quantum_complexity: "Polynomial Time O(log^3 N)"
+    quantum_status: "vulnerable"
+    recommended_replacement: "ML-DSA-65 (FIPS 204) for signing, ML-KEM-768 (FIPS 203) for KEM"
+    regulatory_deadlines:
+      CNSA_2_0: "Phase-in 2025, Exclusive Use 2030, Legacy Deprecated 2033"
+      NIST: "Transition to PQC 2024-2030"
+      BSI: "Deprecation planned post-2030"
+
+  DSA:
+    family: "Discrete Logarithm"
+    primitive: "asymmetric"
+    quantum_break_method: "Shor's Algorithm (Discrete Logarithm)"
+    quantum_complexity: "Polynomial Time"
+    quantum_status: "vulnerable"
+    recommended_replacement: "ML-DSA-44/65 (FIPS 204)"
+    regulatory_deadlines:
+      NIST: "Disallowed in SP 800-131A"
+      CNSA_2_0: "Disallowed"
+
+  Diffie-Hellman:
+    family: "Discrete Logarithm"
+    primitive: "asymmetric"
+    quantum_break_method: "Shor's Algorithm"
+    quantum_complexity: "Polynomial Time"
+    quantum_status: "vulnerable"
+    recommended_replacement: "ML-KEM-768 (FIPS 203) or Hybrid X25519+ML-KEM"
+    regulatory_deadlines:
+      CNSA_2_0: "Phase-in 2025, Deprecated 2030"
+
+  ECDSA:
+    family: "Elliptic Curve Cryptography"
+    primitive: "asymmetric"
+    quantum_break_method: "Shor's Algorithm (ECDLP)"
+    quantum_complexity: "Polynomial Time O(n^3)"
+    quantum_status: "vulnerable"
+    recommended_replacement: "ML-DSA-65 (FIPS 204) or SLH-DSA (FIPS 205)"
+    regulatory_deadlines:
+      CNSA_2_0: "Replace by 2030"
+      NIST: "Deprecated after 2030"
+
+  ECDH:
+    family: "Elliptic Curve Cryptography"
+    primitive: "asymmetric"
+    quantum_break_method: "Shor's Algorithm"
+    quantum_complexity: "Polynomial Time"
+    quantum_status: "vulnerable"
+    recommended_replacement: "ML-KEM-768 (FIPS 203) or Hybrid ECDH+ML-KEM"
+    regulatory_deadlines:
+      CNSA_2_0: "Replace by 2030"
+
+  AES-128-GCM:
+    family: "AES"
+    primitive: "symmetric"
+    quantum_break_method: "Grover's Algorithm (Key Search)"
+    quantum_complexity: "O(2^64) — effective 64-bit security margin"
+    quantum_status: "reduced_security_margin"
+    recommended_replacement: "AES-256-GCM"
+    regulatory_deadlines:
+      CNSA_2_0: "Only AES-256 authorized for national security systems"
+
+  AES-256-GCM:
+    family: "AES"
+    primitive: "symmetric"
+    quantum_break_method: "Grover's Algorithm"
+    quantum_complexity: "O(2^128) — effective 128-bit quantum security"
+    quantum_status: "safe"
+    recommended_replacement: "None (Approved Quantum Safe)"
+    regulatory_deadlines:
+      CNSA_2_0: "Approved symmetric standard"
+
+  ML-KEM-768:
+    family: "Module Lattice KEM"
+    primitive: "pqc"
+    quantum_break_method: "None known (Resistant to Shor & Grover)"
+    quantum_complexity: "NIST Security Category 3 (>= 128-bit quantum security)"
+    quantum_status: "safe"
+    recommended_replacement: "None (NIST FIPS 203 Standard)"
+    regulatory_deadlines:
+      NIST: "FIPS 203 Finalized August 2024"
+      CNSA_2_0: "Primary KEM algorithm"
+
+  ML-DSA-65:
+    family: "Module Lattice Signature"
+    primitive: "pqc"
+    quantum_break_method: "None known"
+    quantum_complexity: "NIST Security Category 3"
+    quantum_status: "safe"
+    recommended_replacement: "None (NIST FIPS 204 Standard)"
+    regulatory_deadlines:
+      NIST: "FIPS 204 Finalized August 2024"
+      CNSA_2_0: "Primary digital signature algorithm"
