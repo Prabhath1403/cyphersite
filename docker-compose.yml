@@ -29,6 +29,23 @@ services:
       timeout: 5s
       retries: 5
 
+  neo4j:
+    image: neo4j:5-community
+    container_name: ciphersight-neo4j
+    environment:
+      NEO4J_AUTH: ${NEO4J_AUTH:-neo4j/cyphercite123}
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -47,6 +64,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      neo4j:
+        condition: service_healthy
 
   worker:
     build:
@@ -63,6 +82,8 @@ services:
       db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      neo4j:
         condition: service_healthy
 
   frontend:
@@ -94,3 +115,4 @@ services:
 volumes:
   pgdata:
   scan_artifacts:
+  neo4j_data:

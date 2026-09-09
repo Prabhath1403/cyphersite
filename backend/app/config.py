@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     AI_MODEL: str = "gpt-4o-mini"
     AI_API_BASE: str = "https://api.openai.com/v1"
 
+    # Neo4j Graph Database
+    NEO4J_URI: str = "bolt://neo4j:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "cyphercite123"
+
     @property
     def cors_origins_list(self) -> List[str]:
         """Parse CORS origins from comma-separated string."""
