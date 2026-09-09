@@ -76,6 +76,14 @@ SUBDOMAIN_WORDLIST = [
     "autodiscover", "autoconfig", "wpad",
     "backup", "bak", "archive", "old", "legacy",
     "new", "next", "v2", "v3",
+    # Education, Campus & Institutional
+    "admissions", "admission", "library", "moodle", "lms", "student", "students",
+    "staff", "faculty", "my", "connect", "eduserve", "uptime", "assist", "idp",
+    "exam", "exams", "results", "alumni", "research", "events", "forms", "services",
+    "payment", "fee", "fees", "apply", "erp", "academics", "ecampus", "campus",
+    "learn", "learning", "elearn", "elearning", "reg", "registration", "helpdesk",
+    "servicedesk", "hostel", "transport", "placement", "placements",
+    "kcode", "online", "webapps", "parent", "parents", "onlineexam",
 ]
 
 # Service type detection by port
@@ -249,16 +257,21 @@ async def resolve_ip(host: str) -> Optional[str]:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, socket.gethostbyname, host)
         return result
-    except socket.gaierror:
+    except (socket.gaierror, socket.herror, TimeoutError, OSError):
+        return None
+    except Exception:
         return None
 
 
-async def scan_port(host: str, port: int, timeout: float = 3.0) -> bool:
+async def scan_port(target_ip_or_host: str, port: int, timeout: float = 3.5) -> bool:
     """
     Check if a specific port is open on a host using async socket connection.
 
+    Connecting directly to IP when available eliminates threadpool getaddrinfo
+    contention and avoids false-negative timeouts during concurrent scans.
+
     Args:
-        host: Target hostname or IP.
+        target_ip_or_host: Target IP or hostname.
         port: Port number to check.
         timeout: Connection timeout in seconds.
 
@@ -267,22 +280,28 @@ async def scan_port(host: str, port: int, timeout: float = 3.0) -> bool:
     """
     try:
         _, writer = await asyncio.wait_for(
-            asyncio.open_connection(host, port),
+            asyncio.open_connection(target_ip_or_host, port),
             timeout=timeout,
         )
-        writer.close()
-        await writer.wait_closed()
+        try:
+            writer.close()
+            await asyncio.wait_for(writer.wait_closed(), timeout=0.5)
+        except Exception:
+            pass
         return True
     except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
         return False
+    except Exception:
+        return False
 
 
-async def scan_ports(host: str, ports: List[int] = None) -> List[int]:
+async def scan_ports(host: str, ip: Optional[str] = None, ports: List[int] = None) -> List[int]:
     """
     Scan multiple ports on a host concurrently.
 
     Args:
-        host: Target hostname or IP.
+        host: Target hostname.
+        ip: Pre-resolved IP address to connect to directly.
         ports: List of ports to scan. Defaults to TLS_PORTS.
 
     Returns:
@@ -291,7 +310,8 @@ async def scan_ports(host: str, ports: List[int] = None) -> List[int]:
     if ports is None:
         ports = TLS_PORTS
 
-    tasks = [scan_port(host, port) for port in ports]
+    target = ip if ip else host
+    tasks = [scan_port(target, port) for port in ports]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     open_ports = []
@@ -302,13 +322,29 @@ async def scan_ports(host: str, ports: List[int] = None) -> List[int]:
     return open_ports
 
 
+def _clean_subdomain(name: str, domain: str) -> Optional[str]:
+    """Validate, clean, and normalize candidate subdomain."""
+    if not name:
+        return None
+    name = name.strip().lower()
+    if name.startswith("*."):
+        name = name[2:]
+    name = name.strip(".")
+    if (name == domain or name.endswith(f".{domain}")) and "*" not in name and " " not in name:
+        if len(name) >= len(domain):
+            return name
+    return None
+
+
 async def discover_subdomains_passive(domain: str) -> Set[str]:
     """
-    Discover subdomains passively using Certificate Transparency logs (crt.sh).
+    Discover subdomains passively using multiple CT and intelligence sources:
+    - Certificate Transparency logs (crt.sh)
+    - HackerTarget Host Search
+    - CertSpotter CT API
+    - AlienVault OTX Passive DNS
 
-    This queries publicly logged TLS certificates to find all subdomains
-    that have had certificates issued for them. Much more comprehensive
-    than brute force.
+    Queries all sources concurrently and merges unique discovered subdomains.
 
     Args:
         domain: The base domain to enumerate subdomains for.
@@ -316,33 +352,94 @@ async def discover_subdomains_passive(domain: str) -> Set[str]:
     Returns:
         Set of discovered subdomain FQDNs.
     """
-    discovered = set()
+    discovered: Set[str] = set()
 
     try:
         import aiohttp
 
-        url = f"https://crt.sh/?q=%.{domain}&output=json"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    for entry in data:
-                        name_value = entry.get("name_value", "")
-                        # crt.sh returns newline-separated names
-                        for name in name_value.split("\n"):
-                            name = name.strip().lower()
-                            # Skip wildcards and non-matching domains
-                            if name.startswith("*."):
-                                name = name[2:]
-                            if name.endswith(f".{domain}") or name == domain:
-                                discovered.add(name)
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/json, text/plain, */*",
+        }
 
-        logger.info(f"crt.sh passive discovery found {len(discovered)} subdomains for {domain}")
+        async def _query_crtsh(session):
+            try:
+                url = f"https://crt.sh/?q=%.{domain}&output=json"
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        if isinstance(data, list):
+                            for entry in data:
+                                name_val = entry.get("name_value", "")
+                                for name in name_val.split("\n"):
+                                    cleaned = _clean_subdomain(name, domain)
+                                    if cleaned:
+                                        discovered.add(cleaned)
+            except Exception as e:
+                logger.debug(f"crt.sh passive discovery failed for {domain}: {e}")
+
+        async def _query_hackertarget(session):
+            try:
+                url = f"https://api.hackertarget.com/hostsearch/?q={domain}"
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=12)) as resp:
+                    if resp.status == 200:
+                        text = await resp.text()
+                        for line in text.splitlines():
+                            if "," in line:
+                                host = line.split(",", 1)[0]
+                                cleaned = _clean_subdomain(host, domain)
+                                if cleaned:
+                                    discovered.add(cleaned)
+            except Exception as e:
+                logger.debug(f"HackerTarget passive discovery failed for {domain}: {e}")
+
+        async def _query_certspotter(session):
+            try:
+                url = f"https://api.certspotter.com/v1/issuances?domain={domain}&include_subdomains=true&expand=dns_names"
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        if isinstance(data, list):
+                            for item in data:
+                                for name in item.get("dns_names", []):
+                                    cleaned = _clean_subdomain(name, domain)
+                                    if cleaned:
+                                        discovered.add(cleaned)
+            except Exception as e:
+                logger.debug(f"CertSpotter passive discovery failed for {domain}: {e}")
+
+        async def _query_alienvault(session):
+            try:
+                url = f"https://otx.alienvault.com/api/v1/indicators/domain/{domain}/passive_dns"
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=12)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        for record in data.get("passive_dns", []):
+                            hostname = record.get("hostname", "")
+                            cleaned = _clean_subdomain(hostname, domain)
+                            if cleaned:
+                                discovered.add(cleaned)
+            except Exception as e:
+                logger.debug(f"AlienVault passive discovery failed for {domain}: {e}")
+
+        async with aiohttp.ClientSession(headers=headers) as session:
+            await asyncio.gather(
+                _query_crtsh(session),
+                _query_hackertarget(session),
+                _query_certspotter(session),
+                _query_alienvault(session),
+                return_exceptions=True,
+            )
+
+        logger.info(f"Passive discovery found {len(discovered)} subdomains for {domain}")
 
     except ImportError:
         logger.warning("aiohttp not available, skipping passive subdomain discovery")
     except Exception as e:
-        logger.warning(f"crt.sh passive discovery failed for {domain}: {e}")
+        logger.warning(f"Passive subdomain discovery failed for {domain}: {e}")
 
     return discovered
 
@@ -358,7 +455,7 @@ async def discover_subdomains_bruteforce(domain: str) -> Set[str]:
         Set of discovered subdomains that resolve.
     """
     discovered = set()
-    semaphore = asyncio.Semaphore(50)  # Limit concurrent DNS queries
+    semaphore = asyncio.Semaphore(30)  # Limit concurrent DNS queries
 
     async def check_subdomain(sub: str):
         async with semaphore:
@@ -421,6 +518,11 @@ async def run_discovery(target: str, scan_depth: str = "quick") -> DiscoveryResu
         result.errors.append(cidr_warning)
         logger.warning(cidr_warning)
 
+    # For apex domains, also include www in targets
+    if not _is_ip_or_cidr(normalized_target):
+        if not normalized_target.startswith("www.") and normalized_target.count(".") == 1:
+            hosts_to_scan.add(f"www.{normalized_target}")
+
     # Step 1: DNS resolution
     if not _is_ip_or_cidr(normalized_target):
         try:
@@ -433,7 +535,7 @@ async def run_discovery(target: str, scan_depth: str = "quick") -> DiscoveryResu
     # Step 2: Subdomain enumeration (full scan only)
     if scan_depth == "full" and not _is_ip_or_cidr(normalized_target):
         try:
-            # Run passive (crt.sh) and active (brute force) in parallel
+            # Run passive (crt.sh, HackerTarget, CertSpotter, AlienVault) and active in parallel
             passive_task = discover_subdomains_passive(normalized_target)
             active_task = discover_subdomains_bruteforce(normalized_target)
 
@@ -459,8 +561,8 @@ async def run_discovery(target: str, scan_depth: str = "quick") -> DiscoveryResu
             result.errors.append(f"Subdomain enumeration failed: {str(e)}")
 
     # Step 3: Scan ports on each host
-    # Use semaphore to limit concurrent port scans
-    scan_semaphore = asyncio.Semaphore(20)
+    # Use semaphore to avoid network congestion while scanning concurrently
+    scan_semaphore = asyncio.Semaphore(15)
 
     async def scan_host(host: str):
         async with scan_semaphore:
@@ -470,8 +572,8 @@ async def run_discovery(target: str, scan_depth: str = "quick") -> DiscoveryResu
                     logger.debug(f"Could not resolve IP for {host}")
                     return []
 
-                open_ports = await scan_ports(host)
-                logger.info(f"Open ports on {host}: {open_ports}")
+                open_ports = await scan_ports(host, ip=ip)
+                logger.info(f"Open ports on {host} ({ip}): {open_ports}")
 
                 endpoints = []
                 for port in open_ports:
@@ -507,9 +609,9 @@ async def run_discovery(target: str, scan_depth: str = "quick") -> DiscoveryResu
             unique_endpoints.append(ep)
     result.endpoints = unique_endpoints
 
-    # If no ports were found open, add default port 443 for single-host targets.
-    if not result.endpoints and len(hosts_to_scan) == 1:
-        fallback_host = list(hosts_to_scan)[0]
+    # If no ports were found open, add default port 443 for target.
+    if not result.endpoints:
+        fallback_host = normalized_target
         ip = await resolve_ip(fallback_host)
         if ip:
             result.endpoints.append(DiscoveredEndpoint(

@@ -85,11 +85,20 @@ class CryptoAsset(Base):
     cipher_suite = Column(String(200), nullable=True)
     protocol = Column(String(50), nullable=True)
 
+    # ── Extended crypto properties (unified platform) ─────────────────────
+    primitive = Column(String(30), nullable=True)
+    # symmetric | asymmetric | hash | mac | kdf | protocol | signature
+    mode = Column(String(30), nullable=True)       # GCM | CBC | CTR | CFB | ECB | etc.
+    padding = Column(String(30), nullable=True)     # PKCS7 | OAEP | PSS | PKCS1v15 | etc.
+    usage = Column(String(50), nullable=True)
+    # encryption | signing | key_exchange | hashing | authentication | tls | jwt | etc.
+
     # ── Library properties ────────────────────────────────────────────────
     library = Column(String(200), nullable=True)
     library_version = Column(String(100), nullable=True)
 
     # ── Source-code provenance ────────────────────────────────────────────
+    repository = Column(String(500), nullable=True)   # repo URL or identifier
     source_location = Column(String(500), nullable=True)
     file_path = Column(String(500), nullable=True)
     line_number = Column(Integer, nullable=True)
@@ -101,14 +110,27 @@ class CryptoAsset(Base):
     ip_address = Column(String(45), nullable=True)
     port = Column(Integer, nullable=True)
 
+    # ── Detection confidence ──────────────────────────────────────────────
+    confidence = Column(Float, nullable=True)  # 0.0 – 1.0
+    evidence = Column(JSONB, nullable=True)    # structured evidence payload
+
     # ── Security / PQC ────────────────────────────────────────────────────
     pqc_status = Column(String(20), nullable=True, index=True)
     # QUANTUM_SAFE | HYBRID_READY | VULNERABLE | UNKNOWN
+    quantum_status = Column(String(30), nullable=True)
+    # vulnerable | reduced_security_margin | safe | unknown
     risk_score = Column(Float, nullable=True, index=True)  # 0.0 – 100.0
+    risk_level = Column(String(10), nullable=True)
+    # CRITICAL | HIGH | MEDIUM | LOW | INFO
     vulnerabilities = Column(JSONB, nullable=True)  # list of strings
     recommendations = Column(JSONB, nullable=True)  # list of strings
 
-    # ── Future business-risk fields (data model only) ─────────────────────
+    # ── Sensitivity inference ─────────────────────────────────────────────
+    sensitivity = Column(String(30), nullable=True)
+    # government_id | financial | medical | authentication | pii | general | unknown
+    sensitivity_confidence = Column(Float, nullable=True)  # 0.0 – 1.0
+
+    # ── Business-risk fields ──────────────────────────────────────────────
     business_criticality = Column(String(20), nullable=True)
     # critical | high | medium | low
     data_sensitivity = Column(String(20), nullable=True)
@@ -128,3 +150,8 @@ class CryptoAsset(Base):
             f"<CryptoAsset {self.asset_type}/{self.source_type} "
             f"name={self.name!r} pqc={self.pqc_status}>"
         )
+
+
+# Type alias — new platform code can use CryptoFinding for clarity
+# while the database model remains CryptoAsset for backward compatibility.
+CryptoFinding = CryptoAsset
