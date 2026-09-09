@@ -16,6 +16,7 @@ from app.core.source_scanner import (
     ScanTarget,
 )
 from app.core.pipeline.normalizer import CryptoNormalizer
+from app.core.sensitivity import SensitivityInferenceEngine
 from app.core.cbom.builder import build_cbom, cbom_to_json_string
 
 logger = logging.getLogger(__name__)
@@ -90,8 +91,9 @@ class UnifiedScanPipeline:
         # 1. Execute Scanner
         scan_result: ScanResult = scanner.scan(target)
 
-        # 2. Normalize Findings through CryptoNormalizer
+        # 2. Normalize Findings through CryptoNormalizer & Data Sensitivity Engine
         normalized_findings = CryptoNormalizer.batch_normalize(scan_result.findings)
+        normalized_findings = SensitivityInferenceEngine.batch_enrich(normalized_findings)
 
         # 3. Compute Metrics
         qs = 0
