@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import {
+  Cpu,
+  Sparkles,
+  Bot,
+  Send,
+  Briefcase,
+  ShieldAlert,
+  Layers,
+  MessageSquare,
+  HelpCircle,
+  Activity,
+  ArrowRight,
+} from 'lucide-react';
 import { queryAI, explainFinding, getScanAISummary, getScans } from '../api/client';
 import toast from 'react-hot-toast';
 
@@ -32,9 +45,9 @@ export default function AIAdvisor() {
 
   const { data: scansData } = useQuery({
     queryKey: ['scans-list'],
-    queryFn: () => getScans({ limit: 20 }),
+    queryFn: () => getScans({ limit: 50 }),
   });
-  const scans = scansData?.items || [];
+  const scans = scansData?.scans || scansData?.items || (Array.isArray(scansData) ? scansData : []);
 
   const handleSendQuery = async (textToSend) => {
     const q = textToSend || queryInput;
@@ -101,11 +114,18 @@ export default function AIAdvisor() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span>🧠</span> AI Cryptographic Advisor & Explainer
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-400/20">
+            SCIENTIFIC REASONING ENGINE
+          </span>
+          <span className="text-xs text-gray-400 font-mono">FIPS 203 / Shor & Grover Dynamics</span>
+        </div>
+        <h1 className="page-header flex items-center gap-2.5">
+          <Cpu className="w-6 h-6 text-cyan-400" />
+          <span>AI Cryptographic Advisor & Explainer</span>
         </h1>
         <p className="text-sm text-gray-400 mt-1">
           Mathematically grounded reasoning on quantum attack algorithms (Shor & Grover), qubit estimations, HNDL threats, and FIPS 203/204 migrations.
@@ -118,8 +138,11 @@ export default function AIAdvisor() {
           {/* Q&A Chat Container */}
           <div className="glass-card p-6 flex flex-col h-[520px] border border-white/10">
             <h2 className="text-xs font-semibold text-cyan-400 uppercase tracking-wider mb-3 flex items-center justify-between">
-              <span>Cryptographic Knowledge Q&A</span>
-              <span className="text-[10px] text-gray-500 font-mono">Expert Deterministic + LLM Mode</span>
+              <span className="flex items-center gap-1.5">
+                <Bot className="w-4 h-4 text-cyan-400" />
+                <span>Cryptographic Knowledge Q&A</span>
+              </span>
+              <span className="text-[10px] text-gray-500 font-mono">Deterministic Math + LLM Reasoning</span>
             </h2>
 
             {/* Quick Prompt Chips */}
@@ -128,9 +151,10 @@ export default function AIAdvisor() {
                 <button
                   key={idx}
                   onClick={() => handleSendQuery(prompt)}
-                  className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-500/30 transition-colors text-left"
+                  className="px-2.5 py-1 rounded-full text-[11px] bg-white/5 hover:bg-cyan-500/10 text-gray-300 hover:text-cyan-300 border border-white/5 hover:border-cyan-500/30 transition-colors text-left flex items-center gap-1"
                 >
-                  💡 {prompt}
+                  <Sparkles className="w-2.5 h-2.5 text-cyan-400" />
+                  <span>{prompt}</span>
                 </button>
               ))}
             </div>
@@ -138,9 +162,12 @@ export default function AIAdvisor() {
             {/* Messages Scroll Area */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-2">
               {qaHistory.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 text-sm">
-                  <span className="text-4xl mb-2">💬</span>
-                  <p>Ask any technical question regarding quantum vulnerabilities, Mosca's theorem, or post-quantum standards.</p>
+                <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 text-xs">
+                  <Bot className="w-10 h-10 text-gray-600 mb-2" />
+                  <p className="font-medium text-gray-400">Ask any post-quantum or cryptography question</p>
+                  <p className="text-[11px] text-gray-600 mt-1 max-w-sm">
+                    Inquire about Shor's discrete logarithm breakdown, Grover square-root attacks, Mosca's theorem, or CNSA 2.0 deadlines.
+                  </p>
                 </div>
               ) : (
                 qaHistory.map((item) => (
@@ -201,7 +228,8 @@ export default function AIAdvisor() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/5 pb-3">
               <div>
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>👔</span> Executive Post-Quantum Readiness Summary
+                  <Briefcase className="w-4 h-4 text-purple-400" />
+                  <span>Executive Post-Quantum Readiness Assessment</span>
                 </h2>
                 <p className="text-xs text-gray-400">
                   Generate board-ready assessments of enterprise quantum exposure.
@@ -314,9 +342,10 @@ export default function AIAdvisor() {
             <button
               type="submit"
               disabled={isAnalyzing}
-              className="w-full py-2 rounded-lg text-xs font-semibold bg-cyan-500 hover:bg-cyan-400 text-black transition-colors disabled:opacity-50"
+              className="w-full py-2 rounded-lg text-xs font-semibold bg-cyan-400 hover:bg-cyan-300 text-navy-950 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-glow-cyan"
             >
-              {isAnalyzing ? 'Calculating...' : '🔬 Analyze Quantum Vulnerability'}
+              <Cpu className="w-3.5 h-3.5" />
+              <span>{isAnalyzing ? 'Calculating...' : 'Analyze Quantum Vulnerability'}</span>
             </button>
           </form>
 

@@ -23,6 +23,13 @@ class MigrationAction:
     code_remediation_snippet: str
     configuration_changes: str
     testing_checklist: List[str] = field(default_factory=list)
+    file_path: Optional[str] = None
+    line_number: Optional[int] = None
+    function_name: Optional[str] = None
+    language: Optional[str] = None
+    source_type: Optional[str] = None
+    hostname: Optional[str] = None
+    port: Optional[int] = None
 
 
 CODE_TEMPLATES: Dict[str, Dict[str, str]] = {
@@ -161,6 +168,13 @@ class MigrationRecommender:
         code_type = "tls" if source_type == "network" else "python"
         snippet = CODE_TEMPLATES.get(template_key, {}).get(code_type, CODE_TEMPLATES.get(template_key, {}).get("python", ""))
 
+        file_path = f.get("file_path")
+        line_number = f.get("line_number")
+        function_name = f.get("function_name")
+        language = f.get("language")
+        hostname = f.get("hostname")
+        port = f.get("port")
+
         checklist = [
             f"Verify dependency support for {target_algo} (e.g. liboqs, cryptography 44+, OpenSSL 3.x)",
             "Deploy hybrid fallback for legacy client compatibility",
@@ -180,6 +194,13 @@ class MigrationRecommender:
             code_remediation_snippet=snippet,
             configuration_changes=f"Update protocol configurations to mandate {target_algo}.",
             testing_checklist=checklist,
+            file_path=file_path,
+            line_number=line_number,
+            function_name=function_name,
+            language=language,
+            source_type=source_type,
+            hostname=hostname,
+            port=port,
         )
 
     @classmethod

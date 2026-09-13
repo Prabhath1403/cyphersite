@@ -1,5 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  ScanLine,
+  Database,
+  Network,
+  Milestone,
+  Cpu,
+  ShieldCheck,
+  Search,
+  Activity,
+  ChevronRight,
+  ExternalLink,
+  Menu,
+  X,
+  Bell,
+  Layers,
+} from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import NewScan from './pages/NewScan';
 import ScanDetail from './pages/ScanDetail';
@@ -11,81 +28,177 @@ import MigrationRoadmap from './pages/MigrationRoadmap';
 import AIAdvisor from './pages/AIAdvisor';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: '📊' },
-  { path: '/scan/new', label: 'New Scan', icon: '🔍' },
-  { path: '/inventory', label: 'Crypto Inventory', icon: '📦' },
-  { path: '/graph', label: 'Topology Graph', icon: '🕸️' },
-  { path: '/roadmap', label: 'Migration Roadmap', icon: '🚀' },
-  { path: '/ai', label: 'AI Advisor', icon: '🧠' },
+  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/scan/new', label: 'New Scan', icon: ScanLine },
+  { path: '/inventory', label: 'Crypto Inventory', icon: Database },
+  { path: '/graph', label: 'Topology Graph', icon: Network },
+  { path: '/roadmap', label: 'Migration Roadmap', icon: Milestone },
+  { path: '/ai', label: 'AI Advisor', icon: Cpu },
 ];
 
-function Sidebar() {
+function Sidebar({ mobileOpen, setMobileOpen }) {
   const location = useLocation();
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-navy-900/95 backdrop-blur-xl border-r border-white/5 z-50 flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-white/5">
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center text-lg shadow-glow-cyan group-hover:scale-110 transition-transform">
-            🛡️
+    <>
+      {/* Mobile Backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed left-0 top-0 h-full w-64 bg-navy-900/95 backdrop-blur-2xl border-r border-white/[0.08] z-50 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/20 via-cyan-400/10 to-emerald-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shadow-glow-cyan group-hover:scale-105 transition-all">
+              <ShieldCheck className="w-6 h-6 text-cyan-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base font-bold text-white tracking-tight font-sans">CipherSight</h1>
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-400/10 text-cyan-300 font-mono font-semibold border border-cyan-400/20">
+                  PQC
+                </span>
+              </div>
+              <p className="text-[10px] text-gray-400 tracking-wider uppercase font-medium">Enterprise Intelligence</p>
+            </div>
+          </Link>
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden text-gray-400 hover:text-white p-1"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Workspace / Context Switcher */}
+        <div className="px-4 pt-4 pb-2">
+          <div className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs text-gray-300">
+            <div className="flex items-center gap-2 truncate">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/20 animate-pulse" />
+              <span className="font-medium truncate">Enterprise Fleet</span>
+            </div>
+            <span className="text-[10px] font-mono text-gray-500">PROD</span>
           </div>
-          <div>
-            <h1 className="text-lg font-bold text-white tracking-tight">CipherSight</h1>
-            <p className="text-[10px] text-cyan-400/60 uppercase tracking-[0.2em] font-medium">Quantum Scanner</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <div className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+            Core Modules
           </div>
+          {navItems.map(({ path, label, icon: Icon }) => {
+            const isActive = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+                  isActive
+                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-400/20 shadow-glow-cyan'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
+                }`}
+              >
+                <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-cyan-400' : 'text-gray-400 group-hover:text-gray-200'}`} />
+                <span className="flex-1">{label}</span>
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-cyan-400/60" />}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Engine Compliance & Status Footer */}
+        <div className="p-4 border-t border-white/[0.08] bg-navy-950/40">
+          <div className="rounded-lg p-3 bg-white/[0.02] border border-white/[0.05] space-y-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="text-gray-400 flex items-center gap-1.5">
+                <Activity className="w-3 h-3 text-emerald-400" />
+                Discovery Engine
+              </span>
+              <span className="text-emerald-400 font-mono font-medium">READY</span>
+            </div>
+            <div className="text-[10px] text-gray-400 flex items-center justify-between font-mono">
+              <span>NIST FIPS 203/204</span>
+              <span>CNSA 2.0</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function TopHeader({ setMobileOpen }) {
+  return (
+    <header className="sticky top-0 z-30 h-16 bg-navy-950/80 backdrop-blur-xl border-b border-white/[0.08] px-6 flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="lg:hidden text-gray-400 hover:text-white p-1 rounded"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Quick Search Shortcut */}
+        <Link
+          to="/inventory"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/80 hover:bg-navy-800 border border-white/10 text-xs text-gray-400 hover:text-gray-200 transition-colors w-72"
+        >
+          <Search className="w-3.5 h-3.5 text-gray-400" />
+          <span>Quick search assets, ciphers, hosts...</span>
+          <kbd className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400">
+            /
+          </kbd>
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map(({ path, label, icon }) => {
-          const isActive = location.pathname === path;
-          return (
-            <Link
-              key={path}
-              to={path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 shadow-glow-cyan'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
-              }`}
-            >
-              <span className="text-base">{icon}</span>
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-white/5">
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>v1.0.0 • PQC Scanner</span>
+      <div className="flex items-center gap-3">
+        {/* Standards Pill */}
+        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>NIST Post-Quantum Compliant</span>
         </div>
+
+        {/* New Scan Action Button */}
+        <Link to="/scan/new" className="btn-primary py-1.5 px-3 text-xs">
+          <ScanLine className="w-3.5 h-3.5" />
+          <span>Run Scan</span>
+        </Link>
       </div>
-    </aside>
+    </header>
   );
 }
 
 export default function App() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-navy-950">
-      <Sidebar />
-      <main className="flex-1 ml-64 p-8">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/scan/new" element={<NewScan />} />
-          <Route path="/scan/:scanId" element={<ScanDetail />} />
-          <Route path="/asset/:assetId" element={<AssetDetail />} />
-          <Route path="/cbom/:scanId" element={<CBOMReport />} />
-          <Route path="/inventory" element={<CryptoInventory />} />
-          <Route path="/graph" element={<DependencyGraph />} />
-          <Route path="/roadmap" element={<MigrationRoadmap />} />
-          <Route path="/ai" element={<AIAdvisor />} />
-        </Routes>
-      </main>
+    <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-cyan-500/30">
+      <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+        <TopHeader setMobileOpen={setMobileOpen} />
+        <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/scan/new" element={<NewScan />} />
+            <Route path="/scan/:scanId" element={<ScanDetail />} />
+            <Route path="/asset/:assetId" element={<AssetDetail />} />
+            <Route path="/cbom/:scanId" element={<CBOMReport />} />
+            <Route path="/inventory" element={<CryptoInventory />} />
+            <Route path="/graph" element={<DependencyGraph />} />
+            <Route path="/roadmap" element={<MigrationRoadmap />} />
+            <Route path="/ai" element={<AIAdvisor />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }

@@ -37,7 +37,8 @@ class GraphEngine:
         app_id = f"app:{target_name}"
         nodes_dict[app_id] = GraphNode(
             id=app_id,
-            label=target_name,
+            label="Scan",
+            name=target_name,
             type="application",
             properties={
                 "scan_id": scan_id or "",
@@ -68,7 +69,8 @@ class GraphEngine:
             if algo_id not in nodes_dict:
                 nodes_dict[algo_id] = GraphNode(
                     id=algo_id,
-                    label=algorithm,
+                    label="Algorithm",
+                    name=algorithm,
                     type="algorithm",
                     properties={
                         "primitive": primitive,
@@ -76,6 +78,7 @@ class GraphEngine:
                         "quantum_status": quantum_status,
                         "risk_score": risk_score,
                         "risk_level": risk_level,
+                        "algorithm": algorithm,
                     },
                 )
 
@@ -86,7 +89,8 @@ class GraphEngine:
                 if component_id not in nodes_dict:
                     nodes_dict[component_id] = GraphNode(
                         id=component_id,
-                        label=file_path.split("/")[-1],
+                        label="File",
+                        name=file_path.split("/")[-1],
                         type="component",
                         properties={"file_path": file_path},
                     )
@@ -116,7 +120,8 @@ class GraphEngine:
                 if lib_id not in nodes_dict:
                     nodes_dict[lib_id] = GraphNode(
                         id=lib_id,
-                        label=library,
+                        label="Other",
+                        name=library,
                         type="library",
                         properties={"library": library},
                     )
@@ -135,7 +140,8 @@ class GraphEngine:
                 if ep_id not in nodes_dict:
                     nodes_dict[ep_id] = GraphNode(
                         id=ep_id,
-                        label=f"{hostname}:{port or 443}",
+                        label="Host",
+                        name=f"{hostname}:{port or 443}",
                         type="endpoint",
                         properties={"hostname": hostname, "port": port},
                     )
@@ -161,7 +167,8 @@ class GraphEngine:
                 if data_id not in nodes_dict:
                     nodes_dict[data_id] = GraphNode(
                         id=data_id,
-                        label=f"{sensitivity} Data",
+                        label="Data",
+                        name=f"{sensitivity} Data",
                         type="data_asset",
                         properties={"sensitivity": sensitivity},
                     )

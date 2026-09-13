@@ -8,17 +8,27 @@ export default {
     extend: {
       colors: {
         navy: {
+          750: '#111C30',
           800: '#0D1B2A',
-          900: '#0A1929',
-          950: '#071019',
+          850: '#0B1524',
+          900: '#08101E',
+          950: '#050B14',
+        },
+        slate: {
+          850: '#151F32',
+          900: '#0F172A',
+          950: '#0A0F1D',
         },
         cyan: {
+          300: '#67E8F9',
           400: '#00E5FF',
           500: '#00BCD4',
+          600: '#0891B2',
         },
         emerald: {
           400: '#00E676',
-          500: '#00C853',
+          500: '#10B981',
+          600: '#059669',
         },
       },
       fontFamily: {
@@ -26,9 +36,10 @@ export default {
         mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
       },
       boxShadow: {
-        'glow-cyan': '0 0 20px rgba(0, 229, 255, 0.15)',
-        'glow-green': '0 0 20px rgba(0, 230, 118, 0.15)',
-        'glow-red': '0 0 20px rgba(255, 23, 68, 0.15)',
+        'glow-cyan': '0 0 25px -5px rgba(0, 229, 255, 0.2)',
+        'glow-green': '0 0 25px -5px rgba(0, 230, 118, 0.2)',
+        'glow-red': '0 0 25px -5px rgba(255, 23, 68, 0.2)',
+        'subtle': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

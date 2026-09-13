@@ -1,16 +1,15 @@
-/**
- * AssetTable — Assets list with PQC status badges and risk scores.
- */
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Layers } from 'lucide-react';
 import PQCBadge from './PQCBadge';
 
 export default function AssetTable({ assets = [] }) {
   if (!assets.length) {
     return (
-      <div className="glass-card p-8 text-center text-gray-500">
-        <p className="text-lg">No assets discovered yet</p>
-        <p className="text-sm mt-1">Assets will appear here after a scan completes</p>
+      <div className="glass-card p-12 flex flex-col items-center justify-center text-center text-gray-500">
+        <Layers className="w-8 h-8 text-gray-600 mb-2" />
+        <p className="text-base font-semibold text-gray-300">No assets discovered yet</p>
+        <p className="text-xs text-gray-500 mt-1">Assets will appear here once a scan concludes discovery</p>
       </div>
     );
   }
@@ -52,9 +51,10 @@ export default function AssetTable({ assets = [] }) {
               <td className="px-6 py-4 text-right">
                 <Link
                   to={`/asset/${asset.id}`}
-                  className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
+                  className="inline-flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors font-medium"
                 >
-                  View Details →
+                  <span>Details</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </td>
             </tr>

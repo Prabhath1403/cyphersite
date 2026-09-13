@@ -27,6 +27,7 @@ async def list_crypto_assets(
     asset_type: Optional[str] = Query(default=None),
     source_type: Optional[str] = Query(default=None),
     pqc_status: Optional[str] = Query(default=None),
+    primitive: Optional[str] = Query(default=None),
     limit: int = Query(default=50, le=200),
     offset: int = Query(default=0, ge=0),
     db: AsyncSession = Depends(get_db),
@@ -72,6 +73,9 @@ async def list_crypto_assets(
     if pqc_status:
         query = query.where(CryptoAsset.pqc_status == pqc_status)
         count_query = count_query.where(CryptoAsset.pqc_status == pqc_status)
+    if primitive:
+        query = query.where(CryptoAsset.primitive == primitive)
+        count_query = count_query.where(CryptoAsset.primitive == primitive)
 
     count_result = await db.execute(count_query)
     total = count_result.scalar()

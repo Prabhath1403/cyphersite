@@ -72,8 +72,8 @@ def test_build_graph_structure():
 def test_generate_cypher_statements():
     """Test Neo4j Cypher query generation."""
     nodes = [
-        GraphNode(id="app:test", label="TestApp", type="application"),
-        GraphNode(id="algo:rsa", label="RSA", type="algorithm", properties={"risk": 85}),
+        GraphNode(id="app:test", label="TestApp", name="TestApp", type="application"),
+        GraphNode(id="algo:rsa", label="RSA", name="RSA", type="algorithm", properties={"risk": 85}),
     ]
     edges = [
         GraphEdge(id="e1", source="app:test", target="algo:rsa", relationship="USES_ALGORITHM"),

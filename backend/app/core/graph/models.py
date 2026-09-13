@@ -11,14 +11,16 @@ from typing import Any, Dict, List, Optional
 class GraphNode:
     """Represents a node in the cryptographic dependency graph."""
     id: str
-    label: str
-    type: str  # application | service | library | algorithm | certificate | endpoint | data_asset
+    label: str  # Category label for grouping: Scan | File | Host | Algorithm | Data | Other
+    name: str   # Display name for the node
+    type: str   # application | service | library | algorithm | certificate | endpoint | data_asset
     properties: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "label": self.label,
+            "name": self.name,
             "type": self.type,
             "properties": self.properties,
         }
@@ -38,6 +40,7 @@ class GraphEdge:
             "id": self.id,
             "source": self.source,
             "target": self.target,
+            "type": self.relationship,
             "relationship": self.relationship,
             "properties": self.properties,
         }

@@ -1,7 +1,5 @@
-/**
- * RiskHeatmap — Grid-based risk heatmap visualization.
- */
 import React from 'react';
+import { Flame } from 'lucide-react';
 
 function getRiskColor(score) {
   if (score >= 80) return 'bg-red-500/80 border-red-400/30';
@@ -31,7 +29,8 @@ export default function RiskHeatmap({ assets = [] }) {
   return (
     <div className="glass-card p-6">
       <h3 className="section-title mb-4">
-        <span>🌡️</span> Risk Heatmap
+        <Flame className="w-4 h-4 text-rose-400" />
+        <span>Risk Exposure Heatmap</span>
       </h3>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

@@ -1,9 +1,29 @@
 /**
- * NewScan — Scan input form with target and depth selection.
+ * NewScan — Enterprise Multi-Modal Cryptographic Discovery Launcher.
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import {
+  Globe,
+  Code2,
+  Box,
+  Binary,
+  ScanLine,
+  Zap,
+  Search,
+  CheckCircle2,
+  Lock,
+  GitBranch,
+  KeyRound,
+  FileCode,
+  ShieldCheck,
+  AlertTriangle,
+  FolderTree,
+  FileSearch,
+  ExternalLink,
+  Sparkles,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   createScan,
@@ -12,6 +32,27 @@ import {
   submitBinaryScan,
   getGitHubRepoInfo,
 } from '../api/client';
+
+const SAMPLE_TARGETS = {
+  network: [
+    { label: 'karunya.edu', value: 'karunya.edu', desc: 'University TLS Infrastructure' },
+    { label: 'google.com', value: 'google.com', desc: 'Enterprise Cloud Gateway' },
+    { label: 'cloudflare.com', value: 'cloudflare.com', desc: 'Hybrid Kyber/X25519 Edge' },
+  ],
+  source: [
+    { label: 'paramiko/paramiko', value: 'https://github.com/paramiko/paramiko', desc: 'SSH & Asymmetric Cryptography' },
+    { label: 'oauthlib/oauthlib', value: 'https://github.com/oauthlib/oauthlib', desc: 'OAuth & Token Signatures' },
+    { label: 'pallets/flask', value: 'https://github.com/pallets/flask', desc: 'Web Session Hashing' },
+  ],
+  container: [
+    { label: 'ubuntu:22.04', value: 'ubuntu:22.04', desc: 'OpenSSL 3.0 Standard Base' },
+    { label: 'alpine:latest', value: 'alpine:latest', desc: 'Musl / Libcrypto Minimal' },
+  ],
+  binary: [
+    { label: '/usr/bin/openssl', value: '/usr/bin/openssl', desc: 'Standard System OpenSSL Executable' },
+    { label: '/usr/lib/libcrypto.so', value: '/usr/lib/libcrypto.so', desc: 'Core Cryptographic Dynamic Library' },
+  ],
+};
 
 export default function NewScan() {
   const navigate = useNavigate();
@@ -124,76 +165,67 @@ export default function NewScan() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 animate-fade-in">
+    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="page-header">New Scan</h1>
-        <p className="text-gray-400 mt-1">
-          {scanType === 'network' && 'Discover public TLS endpoints and evaluate Post-Quantum Cryptography posture'}
-          {scanType === 'source' && 'Scan source code repositories to audit cryptographic libraries, ciphers, and algorithms'}
-          {scanType === 'container' && 'Audit container images and packages for post-quantum security and cryptographic libraries'}
-          {scanType === 'binary' && 'Dissect compiled ELF, PE, and Mach-O binaries for embedded cryptographic symbols and PQC support'}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-400/20">
+            DISCOVERY ENGINE
+          </span>
+          <span className="text-xs text-gray-400 font-mono">Multi-Modal Ingestion</span>
+        </div>
+        <h1 className="page-header flex items-center gap-2.5">
+          <ScanLine className="w-6 h-6 text-cyan-400" />
+          <span>Launch Cryptographic Scan</span>
+        </h1>
+        <p className="text-sm text-gray-400 mt-1">
+          Audit network perimeters, source code AST, container packages, and compiled binary symbols for post-quantum vulnerability.
         </p>
       </div>
 
       {/* Mode Selector Tabs */}
-      <div className="flex rounded-xl bg-navy-800/60 p-1 border border-white/10">
-        <button
-          type="button"
-          onClick={() => { setScanType('network'); setScanDepth('quick'); }}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-xs md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            scanType === 'network'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          <span>🌐</span> Network
-        </button>
-        <button
-          type="button"
-          onClick={() => { setScanType('source'); setScanDepth('standard'); }}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-xs md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            scanType === 'source'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          <span>💻</span> Source Code
-        </button>
-        <button
-          type="button"
-          onClick={() => { setScanType('container'); setScanDepth('standard'); }}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-xs md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            scanType === 'container'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          <span>🐳</span> Container
-        </button>
-        <button
-          type="button"
-          onClick={() => { setScanType('binary'); setScanDepth('standard'); }}
-          className={`flex-1 py-3 px-3 rounded-lg font-medium text-xs md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            scanType === 'binary'
-              ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan'
-              : 'text-gray-400 hover:text-gray-200'
-          }`}
-        >
-          <span>⚙️</span> Binary
-        </button>
+      <div className="flex rounded-xl bg-navy-900/90 p-1.5 border border-white/10 gap-1 shadow-subtle">
+        {[
+          { id: 'network', label: 'Network & TLS', icon: Globe, depth: 'quick' },
+          { id: 'source', label: 'Source Code AST', icon: Code2, depth: 'standard' },
+          { id: 'container', label: 'Container Image', icon: Box, depth: 'standard' },
+          { id: 'binary', label: 'Compiled Binary', icon: Binary, depth: 'standard' },
+        ].map(({ id, label, icon: Icon, depth }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => {
+              setScanType(id);
+              setScanDepth(depth);
+              setTarget('');
+              setRepoInfo(null);
+            }}
+            className={`flex-1 py-2.5 px-3 rounded-lg font-medium text-xs md:text-sm transition-all flex items-center justify-center gap-2 ${
+              scanType === id
+                ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-400/30 shadow-glow-cyan font-semibold'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.03] border border-transparent'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            <span>{label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="glass-card p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="glass-card p-6 md:p-8 space-y-6 border border-white/10">
         {/* Target Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            {scanType === 'network' && 'Target Domain / IP / CIDR'}
-            {scanType === 'source' && 'Repository Path or Git Clone URL'}
-            {scanType === 'container' && 'Container Image (Tag, Tarball Path, or Rootfs)'}
-            {scanType === 'binary' && 'Compiled Binary File Path or Directory (ELF / PE / Mach-O)'}
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-semibold uppercase tracking-wider text-gray-300">
+              {scanType === 'network' && 'Target Hostname / IP / CIDR'}
+              {scanType === 'source' && 'Repository Path or Git Clone URL'}
+              {scanType === 'container' && 'Container Image (Tag, Tarball Path, or Rootfs)'}
+              {scanType === 'binary' && 'Compiled Binary File Path (ELF / PE / Mach-O)'}
+            </label>
+            <span className="text-[11px] text-gray-500 font-mono">Required</span>
+          </div>
+
           <input
             type="text"
             value={target}
@@ -204,73 +236,85 @@ export default function NewScan() {
             }}
             placeholder={
               scanType === 'network'
-                ? 'e.g., example.com, 192.168.1.0/24, api.service.io'
+                ? 'e.g. karunya.edu, google.com, api.service.io'
                 : scanType === 'source'
-                ? 'e.g., https://github.com/pallets/flask, owner/repo, or /path/to/project'
+                ? 'e.g. https://github.com/paramiko/paramiko or pallets/flask'
                 : scanType === 'container'
-                ? 'e.g., ubuntu:22.04, ./image.tar, or /var/lib/rootfs'
-                : 'e.g., /usr/bin/app, ./libcrypto.so, /path/to/binaries, or ./app.tar'
+                ? 'e.g. ubuntu:22.04 or alpine:latest'
+                : 'e.g. /usr/bin/openssl or ./libcrypto.so'
             }
-            className="input-field text-lg"
+            className="input-field text-base py-3"
             autoFocus
             id="scan-target-input"
           />
-          <p className="text-xs text-gray-500 mt-2">
-            {scanType === 'network' && 'Accepts domain names, IP addresses, or CIDR ranges'}
-            {scanType === 'source' && 'Accepts GitHub URLs, owner/repo shorthands, or local directory paths'}
-            {scanType === 'container' && 'Accepts Docker image names/tags, OCI .tar archives, or unpacked rootfs folders'}
-            {scanType === 'binary' && 'Accepts single binary executables, shared libraries (.so/.dll/.dylib), or directories'}
-          </p>
+
+          {/* Quick Preset Buttons */}
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] text-gray-500 flex items-center gap-1 font-medium">
+              <Sparkles className="w-3 h-3 text-cyan-400" />
+              <span>Quick Presets:</span>
+            </span>
+            {SAMPLE_TARGETS[scanType]?.map((sample) => (
+              <button
+                key={sample.value}
+                type="button"
+                onClick={() => {
+                  setTarget(sample.value);
+                  setRepoInfo(null);
+                  setRepoInfoError('');
+                }}
+                className="px-2 py-1 rounded bg-white/[0.04] hover:bg-cyan-500/10 hover:border-cyan-400/30 border border-white/10 text-xs font-mono text-cyan-300 transition-colors"
+                title={sample.desc}
+              >
+                {sample.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Source Code / GitHub Repository Configuration */}
+        {/* Source Code / GitHub Remote Configuration */}
         {scanType === 'source' && (
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4 pt-2 border-t border-white/[0.06]">
             <div className="flex items-center justify-between text-xs text-gray-400">
-              <span className="flex items-center gap-1.5 font-medium text-cyan-300">
-                <span>🐙</span> GitHub & Git Remote Settings
+              <span className="flex items-center gap-1.5 font-semibold text-cyan-300">
+                <GitBranch className="w-3.5 h-3.5" />
+                <span>Git Remote & Authentication</span>
               </span>
               <button
                 type="button"
                 onClick={handleFetchRepoInfo}
                 disabled={isFetchingInfo || !target.trim()}
-                className="px-3 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/30 font-medium transition flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-400/30 font-medium transition flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 id="verify-github-repo-btn"
               >
                 {isFetchingInfo ? (
                   <>
-                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Verifying Repo...
+                    <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Verifying...</span>
                   </>
                 ) : (
-                  '🔍 Verify / Preview Repo'
+                  <>
+                    <Search className="w-3 h-3" />
+                    <span>Verify Remote Repo</span>
+                  </>
                 )}
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Branch / Ref */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Branch / Tag / Ref (Optional)
+                  Branch / Tag (Optional)
                 </label>
                 <input
                   type="text"
                   value={gitBranch}
                   onChange={(e) => setGitBranch(e.target.value)}
-                  placeholder="e.g. main, master, v1.0.0"
-                  className="input-field text-sm"
-                  id="github-branch-input"
+                  placeholder="e.g. main, master"
+                  className="input-field text-xs"
                 />
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Defaults to the repository default branch
-                </p>
               </div>
 
-              {/* Personal Access Token */}
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-xs font-medium text-gray-300">
@@ -289,107 +333,76 @@ export default function NewScan() {
                   value={gitToken}
                   onChange={(e) => setGitToken(e.target.value)}
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                  className="input-field text-sm font-mono"
-                  id="github-token-input"
+                  className="input-field text-xs font-mono"
                 />
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Required for private repos or to avoid API rate limits
-                </p>
               </div>
             </div>
 
-            {/* Error badge if repo info failed */}
+            {/* Error badge */}
             {repoInfoError && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
-                <span>⚠️</span>
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{repoInfoError}</span>
               </div>
             )}
 
-            {/* Repository Info Preview Card */}
+            {/* Verified Repo Card */}
             {repoInfo && (
-              <div className="p-4 rounded-xl bg-navy-900/80 border border-cyan-500/40 space-y-2.5 shadow-glow-cyan animate-fade-in">
+              <div className="p-4 rounded-xl bg-navy-950 border border-cyan-500/40 space-y-2 shadow-glow-cyan animate-fade-in text-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xl">🐙</span>
-                    <a
-                      href={repoInfo.html_url || `https://github.com/${repoInfo.owner}/${repoInfo.repo}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-semibold text-cyan-300 hover:underline flex items-center gap-1 text-sm"
-                    >
-                      {repoInfo.full_name}
-                      <span className="text-xs text-gray-400">↗</span>
-                    </a>
+                    <FileCode className="w-4 h-4 text-cyan-400" />
+                    <span className="font-semibold text-white">{repoInfo.full_name}</span>
                   </div>
-                  <span
-                    className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-medium ${
-                      repoInfo.is_private
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    }`}
-                  >
-                    {repoInfo.is_private ? '🔒 Private' : '🌐 Public'}
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {repoInfo.is_private ? 'Private' : 'Public'}
                   </span>
                 </div>
                 {repoInfo.description && (
-                  <p className="text-xs text-gray-300 line-clamp-2">{repoInfo.description}</p>
+                  <p className="text-gray-300 text-[11px]">{repoInfo.description}</p>
                 )}
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1 border-t border-white/5 font-mono">
-                  <span>🌿 Branch: <strong className="text-cyan-300">{repoInfo.default_branch}</strong></span>
-                  <span>⭐ {repoInfo.stars?.toLocaleString() ?? 0}</span>
-                  <span>🍴 {repoInfo.forks?.toLocaleString() ?? 0}</span>
-                  {repoInfo.language && <span>💻 {repoInfo.language}</span>}
-                  {repoInfo.size_kb > 0 && <span>💾 {(repoInfo.size_kb / 1024).toFixed(1)} MB</span>}
+                <div className="flex items-center gap-4 text-gray-400 font-mono text-[11px] pt-1 border-t border-white/5">
+                  <span>Branch: <strong className="text-cyan-300">{repoInfo.default_branch}</strong></span>
+                  <span>Lang: <strong className="text-gray-200">{repoInfo.language || 'Python'}</strong></span>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Scan Depth Toggle */}
+        {/* Scan Depth Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-3">
-            Scan Depth
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-300 mb-3">
+            Execution Depth & Rigor
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {(scanType === 'network'
               ? [
                   {
                     value: 'quick',
-                    label: '⚡ Quick Scan',
-                    desc: 'Target only, common TLS ports',
-                    time: '~30 seconds',
+                    label: 'Quick TLS Handshake',
+                    desc: 'Direct endpoint TLS negotiation, certificate chain decoding',
+                    time: '~15-30s',
                   },
                   {
                     value: 'full',
-                    label: '🔬 Full Scan',
-                    desc: 'Subdomain enum + deep TLS analysis',
-                    time: '~2-5 minutes',
+                    label: 'Full Surface Recon',
+                    desc: 'Passive subdomains, cert transparency logs, cipher negotiation',
+                    time: '~1-3m',
                   },
                 ]
               : [
                   {
                     value: 'standard',
-                    label: '⚡ Standard Scan',
-                    desc:
-                      scanType === 'source'
-                        ? 'AST cryptographic API detection'
-                        : scanType === 'container'
-                        ? 'Layer & package DB inspection'
-                        : 'Symbol table & dynamic import analysis',
-                    time: '~1-5 seconds',
+                    label: 'Standard Audit',
+                    desc: 'AST cryptographic calls, library linkages, API extraction',
+                    time: '~2-5s',
                   },
                   {
                     value: 'deep',
-                    label: '🔬 Deep Audit',
-                    desc:
-                      scanType === 'source'
-                        ? 'Full recursive code analysis'
-                        : scanType === 'container'
-                        ? 'Full binary & cert extraction'
-                        : 'Full string extraction & constant scan',
-                    time: '~10-30 seconds',
+                    label: 'Deep Rigor Audit',
+                    desc: 'Recursive dependency tree, raw constant strings & bytecode dissection',
+                    time: '~10-30s',
                   },
                 ]
             ).map(({ value, label, desc, time }) => (
@@ -397,83 +410,67 @@ export default function NewScan() {
                 key={value}
                 type="button"
                 onClick={() => setScanDepth(value)}
-                className={`p-5 rounded-xl border text-left transition-all duration-300 ${
+                className={`p-4 rounded-xl border text-left transition-all ${
                   scanDepth === value
-                    ? 'border-cyan-400/50 bg-cyan-400/5 shadow-glow-cyan'
-                    : 'border-white/10 bg-navy-800/40 hover:border-white/20'
+                    ? 'border-cyan-400/60 bg-cyan-500/10 shadow-glow-cyan'
+                    : 'border-white/10 bg-navy-900/60 hover:border-white/20'
                 }`}
-                id={`scan-depth-${value}`}
               >
-                <p className="font-semibold text-gray-200">{label}</p>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm text-gray-200">{label}</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-cyan-300">
+                    {time}
+                  </span>
+                </div>
                 <p className="text-xs text-gray-400 mt-1">{desc}</p>
-                <p className="text-xs text-cyan-400/60 mt-2 font-mono">{time}</p>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Submit */}
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isPending || !target.trim()}
-          className="btn-primary w-full text-lg py-4"
-          id="start-scan-btn"
+          className="btn-primary w-full text-base py-3.5 flex items-center justify-center gap-2 shadow-glow-cyan"
         >
           {isPending ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              {scanType === 'network' && 'Queuing Network Scan...'}
-              {scanType === 'source' && 'Scanning Source Code...'}
-              {scanType === 'container' && 'Scanning Container Image...'}
-              {scanType === 'binary' && 'Dissecting Compiled Binary...'}
-            </span>
+            <>
+              <div className="w-4 h-4 border-2 border-navy-950 border-t-transparent rounded-full animate-spin" />
+              <span>Analyzing Target & Ingesting Cryptography...</span>
+            </>
           ) : (
-            `🚀 Start ${
-              scanType === 'network'
-                ? 'Network'
-                : scanType === 'source'
-                ? 'Source'
-                : scanType === 'container'
-                ? 'Container'
-                : 'Binary'
-            } Scan`
+            <>
+              <ScanLine className="w-4 h-4" />
+              <span>Execute {scanType.toUpperCase()} Discovery Scan</span>
+            </>
           )}
         </button>
       </form>
 
-      {/* Info Cards */}
+      {/* Architectural Capabilities Footer */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(scanType === 'network'
-          ? [
-              { icon: '🔍', title: 'Discovery', desc: 'DNS + port scanning to find all TLS endpoints' },
-              { icon: '🔐', title: 'TLS Analysis', desc: 'Deep cipher suite & certificate inspection' },
-              { icon: '⚛️', title: 'PQC Assessment', desc: 'NIST FIPS 203/204/205 compliance check' },
-            ]
-          : scanType === 'source'
-          ? [
-              { icon: '🐍', title: 'Python AST', desc: 'Deterministic AST analysis of crypto libraries and API calls' },
-              { icon: '📜', title: 'CBOM 1.5', desc: 'Automated CycloneDX Cryptographic Bill of Materials generation' },
-              { icon: '⚛️', title: 'Quantum Audit', desc: 'Evaluates Shor’s & Grover’s attack vulnerabilities' },
-            ]
-          : scanType === 'container'
-          ? [
-              { icon: '📦', title: 'Package DBs', desc: 'Audits dpkg, apk, rpm, and site-packages databases' },
-              { icon: '📂', title: 'Layer Inspection', desc: 'Extracts shared crypto binaries (.so) and root certificates' },
-              { icon: '⚛️', title: 'PQC Readiness', desc: 'Classifies OpenSSL 3.x, liboqs, and crypto posture' },
-            ]
-          : [
-              { icon: '🧩', title: 'Symbol Extraction', desc: 'Parses .dynsym, .symtab, and export/import tables across ELF/PE/Mach-O' },
-              { icon: '📦', title: 'Library Linkage', desc: 'Identifies dynamically and statically linked OpenSSL, liboqs, sodium' },
-              { icon: '⚛️', title: 'PQC Signatures', desc: 'Detects FIPS 203 ML-KEM, FIPS 204 ML-DSA, and quantum vulnerabilities' },
-            ]
-        ).map(({ icon, title, desc }) => (
-          <div key={title} className="glass-card p-5">
-            <span className="text-2xl">{icon}</span>
-            <h3 className="font-semibold text-gray-200 mt-2">{title}</h3>
-            <p className="text-xs text-gray-400 mt-1">{desc}</p>
+        {[
+          {
+            icon: ShieldCheck,
+            title: 'NIST Standards Alignment',
+            desc: 'Real-time compliance checks against FIPS 203 (ML-KEM), 204 (ML-DSA), and 205 (SLH-DSA).',
+          },
+          {
+            icon: Lock,
+            title: 'Mosca Theorem Horizon',
+            desc: 'Automated evaluation of X + Y > Z risk to prevent retrospective data harvesting.',
+          },
+          {
+            icon: FolderTree,
+            title: 'CycloneDX CBOM 1.5',
+            desc: 'Generates standardized Cryptographic Bill of Materials ready for DevSecOps pipelines.',
+          },
+        ].map(({ icon: Icon, title, desc }) => (
+          <div key={title} className="glass-card p-4 border border-white/5 space-y-1.5">
+            <Icon className="w-5 h-5 text-cyan-400" />
+            <h3 className="font-semibold text-gray-200 text-xs">{title}</h3>
+            <p className="text-[11px] text-gray-400 leading-relaxed">{desc}</p>
           </div>
         ))}
       </div>

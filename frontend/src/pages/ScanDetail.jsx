@@ -1,8 +1,20 @@
 /**
- * ScanDetail — Live scan progress + results view.
+ * ScanDetail — Live scan progress + results view with Lucide icons.
  */
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import {
+  ArrowLeft,
+  FileText,
+  Download,
+  ShieldCheck,
+  ShieldAlert,
+  AlertTriangle,
+  Layers,
+  Lock,
+  AlertOctagon,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { useScan, useAssets } from '../hooks/useScanResults';
 import ScanProgress from '../components/ScanProgress';
 import AssetTable from '../components/AssetTable';
@@ -31,8 +43,9 @@ export default function ScanDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500 animate-pulse">Loading scan...</div>
+      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+        <div className="w-6 h-6 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin mb-3" />
+        <p className="text-xs">Loading scan telemetry...</p>
       </div>
     );
   }
@@ -40,33 +53,45 @@ export default function ScanDetail() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <Link to="/" className="text-sm text-gray-500 hover:text-gray-300 mb-2 inline-block">
-            ← Back to Dashboard
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-cyan-400 mb-2 transition-colors font-medium"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Central Command</span>
           </Link>
-          <h1 className="page-header">Scan: {scan?.target}</h1>
-          <div className="flex items-center gap-4 mt-2">
-            <span className="text-sm text-gray-400">Depth: {scan?.scan_depth}</span>
-            <span className="text-sm text-gray-500">
-              Started: {new Date(scan?.created_at).toLocaleString()}
+          <div className="flex items-center gap-3">
+            <h1 className="page-header font-mono">{scan?.target}</h1>
+            <span className="text-xs px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-300 font-mono">
+              {scan?.scan_depth}
             </span>
+          </div>
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 font-mono">
+            <span>Scan ID: {scan?.id}</span>
+            <span>•</span>
+            <span>Started: {new Date(scan?.created_at).toLocaleString()}</span>
           </div>
         </div>
 
         {isComplete && (
-          <div className="flex gap-3">
-            <button onClick={() => handleDownload('json')} className="btn-secondary text-sm py-2">
-              📄 JSON
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={() => handleDownload('json')} className="btn-secondary text-xs py-2 px-3">
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
+              <span>JSON</span>
             </button>
-            <button onClick={() => handleDownload('csv')} className="btn-secondary text-sm py-2">
-              📊 CSV
+            <button onClick={() => handleDownload('csv')} className="btn-secondary text-xs py-2 px-3">
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+              <span>CSV</span>
             </button>
-            <button onClick={() => handleDownload('pdf')} className="btn-primary text-sm py-2">
-              📥 PDF Report
+            <button onClick={() => handleDownload('pdf')} className="btn-primary text-xs py-2 px-3">
+              <Download className="w-3.5 h-3.5" />
+              <span>PDF Report</span>
             </button>
-            <Link to={`/cbom/${scanId}`} className="btn-secondary text-sm py-2">
-              📋 View CBOM
+            <Link to={`/cbom/${scanId}`} className="btn-secondary text-xs py-2 px-3">
+              <Layers className="w-3.5 h-3.5 text-indigo-400" />
+              <span>View CBOM</span>
             </Link>
           </div>
         )}
@@ -77,9 +102,12 @@ export default function ScanDetail() {
 
       {/* Error */}
       {scan?.status === 'failed' && (
-        <div className="glass-card p-6 border-red-500/20">
-          <h3 className="text-red-400 font-semibold mb-2">⚠️ Scan Failed</h3>
-          <p className="text-sm text-gray-400">{scan.error_message || 'An unknown error occurred'}</p>
+        <div className="glass-card p-6 border-rose-500/30 bg-rose-500/10">
+          <div className="flex items-center gap-2 text-rose-400 font-semibold mb-2">
+            <AlertOctagon className="w-5 h-5" />
+            <h3>Scan Interrupted / Failed</h3>
+          </div>
+          <p className="text-sm text-gray-300">{scan.error_message || 'An unknown error occurred during discovery execution'}</p>
         </div>
       )}
 
@@ -87,10 +115,10 @@ export default function ScanDetail() {
       {isComplete && (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <StatMini label="Total Assets" value={scan.total_assets} icon="🌐" />
-            <StatMini label="Quantum Safe" value={scan.quantum_safe_count} icon="🟢" color="text-emerald-400" />
-            <StatMini label="Hybrid Ready" value={scan.hybrid_count} icon="🟡" color="text-amber-400" />
-            <StatMini label="Vulnerable" value={scan.vulnerable_count} icon="🔴" color="text-red-400" />
+            <StatMini label="Total Assets" value={scan.total_assets} icon={Layers} color="text-white" iconColor="text-cyan-400" />
+            <StatMini label="Quantum Safe" value={scan.quantum_safe_count} icon={ShieldCheck} color="text-emerald-400" iconColor="text-emerald-400" />
+            <StatMini label="Hybrid Ready" value={scan.hybrid_count} icon={ShieldAlert} color="text-amber-400" iconColor="text-amber-400" />
+            <StatMini label="Vulnerable" value={scan.vulnerable_count} icon={AlertTriangle} color="text-rose-400" iconColor="text-rose-400" />
           </div>
 
           {/* Charts */}
@@ -102,7 +130,8 @@ export default function ScanDetail() {
           {/* Asset Table */}
           <div>
             <h2 className="section-title mb-4">
-              <span>🔐</span> Discovered Assets
+              <Lock className="w-4 h-4 text-cyan-400" />
+              <span>Discovered Cryptographic Assets ({assets.length})</span>
             </h2>
             <AssetTable assets={assets} />
           </div>
@@ -112,13 +141,15 @@ export default function ScanDetail() {
   );
 }
 
-function StatMini({ label, value, icon, color = 'text-white' }) {
+function StatMini({ label, value, icon: Icon, color = 'text-white', iconColor = 'text-gray-400' }) {
   return (
-    <div className="glass-card p-4 flex items-center gap-4">
-      <span className="text-2xl">{icon}</span>
+    <div className="stat-card p-4 flex items-center gap-4">
+      <div className={`p-2.5 rounded-lg bg-white/[0.04] border border-white/[0.06] ${iconColor}`}>
+        <Icon className="w-5 h-5" />
+      </div>
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className={`text-2xl font-bold font-mono ${color}`}>{value ?? 0}</p>
+        <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
+        <p className={`text-2xl font-extrabold font-mono mt-0.5 ${color}`}>{value ?? 0}</p>
       </div>
     </div>
   );

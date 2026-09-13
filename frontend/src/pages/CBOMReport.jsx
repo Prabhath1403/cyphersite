@@ -1,8 +1,15 @@
-/**
- * CBOMReport — CBOM viewer with JSON syntax highlighting and download options.
- */
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import {
+  FileText,
+  FileSpreadsheet,
+  Download,
+  Copy,
+  Table,
+  ArrowLeft,
+  Check,
+  Layers,
+} from 'lucide-react';
 import { useCBOM } from '../hooks/useScanResults';
 import { downloadCBOM } from '../api/client';
 import toast from 'react-hot-toast';
@@ -44,40 +51,62 @@ export default function CBOMReport() {
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <Link to={`/scan/${scanId}`} className="text-sm text-gray-500 hover:text-gray-300 mb-2 inline-block">
-            ← Back to Scan
+          <Link
+            to={`/scan/${scanId}`}
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-cyan-400 mb-2 transition-colors font-medium"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Scan Results</span>
           </Link>
-          <h1 className="page-header">CBOM Report</h1>
-          <p className="text-gray-400 mt-1">CycloneDX Cryptographic Bill of Materials</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-400/20">
+              CYCLONEDX 1.5
+            </span>
+            <span className="text-xs text-gray-400 font-mono">Formal Cryptographic BOM</span>
+          </div>
+          <h1 className="page-header flex items-center gap-2.5">
+            <Layers className="w-6 h-6 text-cyan-400" />
+            <span>Cryptographic Bill of Materials (CBOM)</span>
+          </h1>
+          <p className="text-sm text-gray-400 mt-1">
+            Standardized machine-readable inventory of cryptographic assets conforming to NIST & CycloneDX specifications.
+          </p>
         </div>
-        <div className="flex gap-3">
-          <button onClick={() => handleDownload('json')} className="btn-secondary text-sm py-2" id="download-json">
-            📄 JSON
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => handleDownload('json')} className="btn-secondary text-xs py-2 px-3" id="download-json">
+            <FileText className="w-3.5 h-3.5 text-cyan-400" />
+            <span>JSON</span>
           </button>
-          <button onClick={() => handleDownload('csv')} className="btn-secondary text-sm py-2" id="download-csv">
-            📊 CSV
+          <button onClick={() => handleDownload('csv')} className="btn-secondary text-xs py-2 px-3" id="download-csv">
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <span>CSV</span>
           </button>
-          <button onClick={() => handleDownload('pdf')} className="btn-primary text-sm py-2" id="download-pdf">
-            📥 PDF Report
+          <button onClick={() => handleDownload('pdf')} className="btn-primary text-xs py-2 px-3" id="download-pdf">
+            <Download className="w-3.5 h-3.5" />
+            <span>PDF Report</span>
           </button>
         </div>
       </div>
 
       {/* View Toggle */}
       <div className="flex gap-2">
-        {['json', 'table'].map((mode) => (
+        {[
+          { id: 'json', label: 'CycloneDX JSON', icon: FileText },
+          { id: 'table', label: 'Tabular Components', icon: Table },
+        ].map(({ id, label, icon: Icon }) => (
           <button
-            key={mode}
-            onClick={() => setViewMode(mode)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              viewMode === mode
-                ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20'
-                : 'text-gray-400 hover:text-gray-200 border border-transparent'
+            key={id}
+            onClick={() => setViewMode(id)}
+            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all flex items-center gap-2 ${
+              viewMode === id
+                ? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 shadow-glow-cyan'
+                : 'text-gray-400 hover:text-gray-200 border border-transparent bg-white/[0.03]'
             }`}
           >
-            {mode === 'json' ? '{ } JSON' : '📋 Table'}
+            <Icon className="w-3.5 h-3.5" />
+            <span>{label}</span>
           </button>
         ))}
       </div>
@@ -86,15 +115,16 @@ export default function CBOMReport() {
       {viewMode === 'json' && (
         <div className="glass-card overflow-hidden">
           <div className="px-6 py-3 border-b border-white/5 flex items-center justify-between">
-            <span className="text-xs text-gray-500 font-mono">CycloneDX {cbom.specVersion}</span>
+            <span className="text-xs text-gray-400 font-mono">CycloneDX Schema {cbom.specVersion || '1.5'}</span>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(JSON.stringify(cbom, null, 2));
                 toast.success('Copied to clipboard');
               }}
-              className="text-xs text-gray-400 hover:text-cyan-400"
+              className="text-xs text-gray-400 hover:text-cyan-400 flex items-center gap-1 font-mono"
             >
-              📋 Copy
+              <Copy className="w-3 h-3" />
+              <span>Copy Schema</span>
             </button>
           </div>
           <pre className="p-6 text-xs font-mono text-gray-300 overflow-auto max-h-[600px] leading-relaxed">
