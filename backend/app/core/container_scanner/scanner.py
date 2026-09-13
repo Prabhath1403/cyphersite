@@ -76,6 +76,18 @@ class ContainerScanner(BaseScanner):
         target_path_str = target.path.strip()
         target_path = Path(target_path_str)
 
+        # Check if target is a tag matching a cached archive (e.g. ubuntu:22.04 -> sample_containers/ubuntu_22.04.tar)
+        candidate_archives = [
+            Path(f"/app/sample_containers/{target_path_str.replace(':', '_').replace('/', '_')}.tar"),
+            Path(f"sample_containers/{target_path_str.replace(':', '_').replace('/', '_')}.tar"),
+            Path(f"/app/sample_containers/{target_path_str}.tar"),
+            Path(f"backend/sample_containers/{target_path_str.replace(':', '_').replace('/', '_')}.tar"),
+        ]
+        cached_archive = next((p for p in candidate_archives if p.is_file()), None)
+        if cached_archive:
+            target_path = cached_archive
+            target_path_str = str(cached_archive)
+
         temp_dir = None
         try:
             if target_path.is_file() and any(target_path_str.endswith(ext) for ext in (".tar", ".tar.gz", ".tgz")):
@@ -127,8 +139,8 @@ class ContainerScanner(BaseScanner):
             with tarfile.open(tar_path, "r:*") as outer_tar:
                 for member in outer_tar.getmembers():
                     result.files_scanned += 1
-                    # Inspect inner layer tar files
-                    if member.name.endswith(".tar") or member.name.endswith("/layer.tar"):
+                    # Inspect inner layer tar files (support legacy Docker layer.tar and modern OCI blobs/sha256/...)
+                    if member.name.endswith(".tar") or member.name.endswith("/layer.tar") or "blobs/sha256/" in member.name:
                         f = outer_tar.extractfile(member)
                         if f:
                             try:

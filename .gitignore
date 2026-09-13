@@ -45,6 +45,7 @@ frontend/.eslintcache
 
 # Runtime artifacts
 backend/artifacts/
+backend/sample_containers/*.tar
 celerybeat-schedule
 *.sqlite3
 *.log

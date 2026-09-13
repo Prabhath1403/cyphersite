@@ -45,8 +45,9 @@ const SAMPLE_TARGETS = {
     { label: 'pallets/flask', value: 'https://github.com/pallets/flask', desc: 'Web Session Hashing' },
   ],
   container: [
-    { label: 'ubuntu:22.04', value: 'ubuntu:22.04', desc: 'OpenSSL 3.0 Standard Base' },
-    { label: 'alpine:latest', value: 'alpine:latest', desc: 'Musl / Libcrypto Minimal' },
+    { label: 'ubuntu:22.04', value: 'ubuntu:22.04', desc: 'Ubuntu 22.04 LTS (OpenSSL 3.0 + GnuTLS)' },
+    { label: 'nginx:alpine', value: 'nginx:alpine', desc: 'Nginx on Alpine (OpenSSL + X.509 Certificates)' },
+    { label: 'alpine:latest', value: 'alpine:latest', desc: 'Alpine Linux (Libcrypto Minimal)' },
   ],
   binary: [
     { label: '/usr/bin/openssl', value: '/usr/bin/openssl', desc: 'Standard System OpenSSL Executable' },
