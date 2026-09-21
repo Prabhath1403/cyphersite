@@ -236,7 +236,7 @@ function AppContent() {
   useGitMonitorSocket();
 
   return (
-    <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-cyan-500/30">
+    <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-slate-700/50 selection:text-white">
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         <TopHeader setMobileOpen={setMobileOpen} />

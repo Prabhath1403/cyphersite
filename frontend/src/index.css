@@ -47,8 +47,12 @@
   }
 
   ::selection {
-    background: rgba(88, 166, 255, 0.35);
+    background: rgba(110, 118, 129, 0.4);
     color: #ffffff;
+  }
+
+  input, textarea {
+    caret-color: #58a6ff;
   }
 }
 
