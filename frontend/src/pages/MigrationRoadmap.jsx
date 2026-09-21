@@ -268,7 +268,7 @@ export default function MigrationRoadmap() {
           <p className="text-sm font-medium text-gray-300">Generating prioritized migration roadmap...</p>
           <p className="text-xs text-gray-500 mt-1">Cross-referencing NIST FIPS 203/204 standards with discovered cryptographic primitives...</p>
         </div>
-      ) : scans.length === 0 ? (
+      ) : scansList.length === 0 ? (
         <div className="glass-card p-12 text-center text-gray-400 space-y-3">
           <AlertCircle className="w-8 h-8 text-gray-600 mx-auto" />
           <h3 className="text-base font-semibold text-white">No Cryptographic Discovery Scans Found</h3>
