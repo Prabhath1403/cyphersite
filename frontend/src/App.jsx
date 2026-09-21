@@ -98,14 +98,14 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
               setMobileOpen(false);
               openHistory();
             }}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/25 text-xs text-cyan-300 transition-all group shadow-glow-cyan/15 cursor-pointer"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-xs text-emerald-300 transition-all group shadow-glow-green/15 cursor-pointer"
             title="Open Project History (ChatGPT style)"
           >
             <div className="flex items-center gap-2 truncate">
-              <History className="w-4 h-4 text-cyan-400 group-hover:rotate-[-20deg] transition-transform" />
+              <History className="w-4 h-4 text-emerald-400 group-hover:rotate-[-20deg] transition-transform" />
               <span className="font-semibold truncate">Project History</span>
             </div>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-200">
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-200">
               {scansList.length}
             </span>
           </button>
@@ -117,10 +117,10 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
             <div className="px-3 py-2 rounded-lg bg-navy-950/80 border border-white/[0.06] text-xs space-y-1">
               <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
                 <span>ACTIVE SCOPE</span>
-                <span className="text-cyan-400">ISOLATED</span>
+                <span className="text-emerald-400">ISOLATED</span>
               </div>
               <div className="font-mono text-white text-xs font-semibold truncate flex items-center gap-1.5" title={activeProject.target}>
-                <FolderGit2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <FolderGit2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span className="truncate">{activeProject.target}</span>
               </div>
             </div>
@@ -141,13 +141,13 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
                   isActive
-                    ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-400/20 shadow-glow-cyan'
+                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-glow-green'
                     : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-cyan-400' : 'text-gray-400 group-hover:text-gray-200'}`} />
+                <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-emerald-400' : 'text-gray-400 group-hover:text-gray-200'}`} />
                 <span className="flex-1">{label}</span>
-                {isActive && <ChevronRight className="w-3.5 h-3.5 text-cyan-400/60" />}
+                {isActive && <ChevronRight className="w-3.5 h-3.5 text-emerald-400/60" />}
               </Link>
             );
           })}
@@ -190,12 +190,12 @@ function TopHeader({ setMobileOpen }) {
         {/* Extra Project History Button in Top Header */}
         <button
           onClick={openHistory}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/90 hover:bg-navy-800 border border-cyan-400/30 text-xs text-gray-200 transition-all shadow-glow-cyan/20 cursor-pointer group"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/90 hover:bg-navy-800 border border-emerald-500/30 text-xs text-gray-200 transition-all shadow-glow-green/20 cursor-pointer group"
           title="Open Project History (ChatGPT style)"
         >
-          <History className="w-4 h-4 text-cyan-400 group-hover:rotate-[-20deg] transition-transform" />
+          <History className="w-4 h-4 text-emerald-400 group-hover:rotate-[-20deg] transition-transform" />
           <span className="text-gray-400 hidden sm:inline">Project:</span>
-          <span className="text-cyan-300 font-mono font-semibold max-w-[170px] truncate">
+          <span className="text-emerald-300 font-mono font-semibold max-w-[170px] truncate">
             {activeProject?.target || 'Select Project'}
           </span>
           <ChevronRight className="w-3 h-3 text-gray-500" />
@@ -236,7 +236,7 @@ function AppContent() {
   useGitMonitorSocket();
 
   return (
-    <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-slate-700/50 selection:text-white">
+    <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-emerald-500/40 selection:text-white">
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         <TopHeader setMobileOpen={setMobileOpen} />
