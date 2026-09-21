@@ -4,18 +4,28 @@
 
 @layer base {
   :root {
-    --color-navy-900: #0A1929;
-    --color-navy-800: #0D1B2A;
-    --color-navy-700: #132D46;
-    --color-cyan-400: #00E5FF;
-    --color-emerald-400: #00E676;
-    --color-red-400: #FF1744;
-    --color-amber-400: #FFD600;
+    --color-navy-950: #0d1117;
+    --color-navy-900: #161b22;
+    --color-navy-850: #1c2128;
+    --color-navy-800: #21262d;
+    --color-navy-750: #30363d;
+    --color-cyan-400: #58a6ff;
+    --color-emerald-400: #3fb950;
+    --color-emerald-500: #238636;
+    --color-red-400: #f85149;
+    --color-amber-400: #d29922;
+    --color-purple-400: #bc8cff;
+  }
+
+  body {
+    background-color: #0d1117;
+    color: #f0f6fc;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 229, 255, 0.2) transparent;
+    scrollbar-color: #30363d transparent;
   }
 
   *::-webkit-scrollbar {
@@ -28,31 +38,32 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgba(0, 229, 255, 0.2);
-    border-radius: 3px;
+    background: #30363d;
+    border-radius: 4px;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 229, 255, 0.4);
+    background: #484f58;
   }
 
   ::selection {
-    background: rgba(0, 229, 255, 0.3);
-    color: white;
+    background: rgba(88, 166, 255, 0.35);
+    color: #ffffff;
   }
 }
 
 @layer components {
+  /* GitHub Primer style cards */
   .glass-card {
-    @apply bg-navy-850/80 backdrop-blur-xl border border-white/[0.07] rounded-xl shadow-subtle transition-all duration-200;
+    @apply bg-navy-900 border border-navy-750 rounded-lg shadow-sm transition-all duration-150;
   }
 
   .glass-card-hover {
-    @apply glass-card hover:border-cyan-400/30 hover:shadow-glow-cyan;
+    @apply glass-card hover:border-gray-500 hover:bg-navy-850/70;
   }
 
   .stat-card {
-    @apply glass-card p-6 relative overflow-hidden border border-white/[0.08];
+    @apply glass-card p-5 relative overflow-hidden;
   }
 
   .stat-card::before {
@@ -62,60 +73,67 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-color, #00E5FF), transparent);
-    opacity: 0.8;
+    background: var(--accent-color, #58a6ff);
+    opacity: 0.9;
   }
 
+  /* GitHub Primer Buttons */
+  /* Primary Action: GitHub green (#238636) button */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-300 hover:to-cyan-400 text-navy-950 font-semibold text-sm rounded-lg transition-all duration-200 shadow-glow-cyan hover:shadow-cyan-400/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium text-sm rounded-md border border-[rgba(240,246,252,0.1)] transition-colors duration-150 shadow-sm active:bg-[#29903b] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Secondary Button: GitHub dark button (#21262d) with border (#30363d) */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-cyan-400/40 text-gray-200 hover:text-white font-medium text-sm rounded-lg transition-all duration-200 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-navy-800 hover:bg-navy-750 border border-navy-750 text-gray-200 hover:text-white font-medium text-sm rounded-md transition-colors duration-150 active:bg-navy-750;
   }
 
+  /* Danger Button: GitHub issue/danger button */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-rose-600/90 hover:bg-rose-500 text-white font-medium text-sm rounded-lg transition-all duration-200 shadow-glow-red active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm rounded-md border border-[rgba(240,246,252,0.1)] transition-colors duration-150 shadow-sm active:bg-rose-700;
   }
 
+  /* GitHub Form Inputs */
   .input-field {
-    @apply w-full px-4 py-2.5 bg-navy-900/90 border border-white/10 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/10 transition-all duration-200 font-mono text-sm;
+    @apply w-full px-3.5 py-2 bg-navy-950 border border-navy-750 rounded-md text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-colors duration-150 font-mono text-sm;
   }
 
+  /* GitHub Status Badges (Security labels) */
   .status-badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tracking-wide;
   }
 
   .badge-safe {
-    @apply status-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/25;
+    @apply status-badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/30;
   }
 
   .badge-hybrid {
-    @apply status-badge bg-amber-500/10 text-amber-400 border border-amber-500/25;
+    @apply status-badge bg-amber-500/15 text-amber-400 border border-amber-500/30;
   }
 
   .badge-vulnerable {
-    @apply status-badge bg-rose-500/10 text-rose-400 border border-rose-500/25;
+    @apply status-badge bg-rose-500/15 text-rose-400 border border-rose-500/30;
   }
 
   .badge-queued {
-    @apply status-badge bg-slate-500/10 text-slate-400 border border-slate-500/25;
+    @apply status-badge bg-gray-500/15 text-gray-400 border border-gray-500/30;
   }
 
   .badge-inconclusive {
-    @apply status-badge bg-amber-500/10 text-amber-300 border border-amber-500/25;
+    @apply status-badge bg-amber-500/15 text-amber-300 border border-amber-500/30;
   }
 
   .badge-running {
-    @apply status-badge bg-cyan-500/10 text-cyan-400 border border-cyan-500/30;
+    @apply status-badge bg-cyan-500/15 text-cyan-400 border border-cyan-500/30;
   }
 
+  /* GitHub Table Styling */
   .table-header {
-    @apply bg-navy-900/95 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-white/[0.08];
+    @apply bg-navy-900 text-[12px] font-semibold text-gray-400 uppercase tracking-wider border-b border-navy-750;
   }
 
   .table-row {
-    @apply border-b border-white/[0.05] transition-colors duration-150 hover:bg-white/[0.03];
+    @apply border-b border-navy-750/70 transition-colors duration-100 hover:bg-navy-850/50;
   }
 
   .section-title {
@@ -123,13 +141,13 @@
   }
 
   .page-header {
-    @apply text-2xl md:text-3xl font-bold tracking-tight text-white;
+    @apply text-2xl font-bold tracking-tight text-white;
   }
 }
 
 @layer utilities {
   .text-glow {
-    text-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+    text-shadow: 0 0 16px rgba(88, 166, 255, 0.4);
   }
 
   .animate-gradient {

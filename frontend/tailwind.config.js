@@ -7,46 +7,77 @@ export default {
   theme: {
     extend: {
       colors: {
+        github: {
+          canvas: '#0d1117',
+          subtle: '#161b22',
+          overlay: '#21262d',
+          inset: '#010409',
+          border: '#30363d',
+          'border-muted': '#21262d',
+          fg: '#f0f6fc',
+          muted: '#8b949e',
+          blue: '#58a6ff',
+          green: '#238636',
+          'green-hover': '#2ea043',
+          'green-text': '#3fb950',
+          red: '#f85149',
+          gold: '#d29922',
+          purple: '#bc8cff',
+        },
         navy: {
-          750: '#111C30',
-          800: '#0D1B2A',
-          850: '#0B1524',
-          900: '#08101E',
-          950: '#050B14',
+          750: '#30363d', // GitHub border / active surface
+          800: '#21262d', // GitHub overlay / elevated surface
+          850: '#1c2128', // GitHub card background
+          900: '#161b22', // GitHub canvas subtle (sidebar, header, panels)
+          950: '#0d1117', // GitHub canvas default (main background)
         },
         slate: {
-          850: '#151F32',
-          900: '#0F172A',
-          950: '#0A0F1D',
+          850: '#1c2128',
+          900: '#161b22',
+          950: '#0d1117',
         },
         cyan: {
-          300: '#67E8F9',
-          400: '#00E5FF',
-          500: '#00BCD4',
-          600: '#0891B2',
+          300: '#79c0ff', // GitHub light blue
+          400: '#58a6ff', // GitHub primary accent blue
+          500: '#1f6feb', // GitHub solid blue
+          600: '#388bfd', // GitHub deep blue
         },
         emerald: {
-          400: '#00E676',
-          500: '#10B981',
-          600: '#059669',
+          400: '#3fb950', // GitHub verified green text/badge
+          500: '#238636', // GitHub primary button green
+          600: '#2ea043', // GitHub hover green
+        },
+        rose: {
+          400: '#f85149', // GitHub issue / alert red
+          500: '#da3633', // GitHub solid red
+          600: '#b62324',
+        },
+        amber: {
+          400: '#d29922', // GitHub warning gold
+          500: '#9e6a03',
+        },
+        purple: {
+          400: '#bc8cff', // GitHub merged purple
+          500: '#8957e5',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Noto Sans', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', 'monospace'],
       },
       boxShadow: {
-        'glow-cyan': '0 0 25px -5px rgba(0, 229, 255, 0.2)',
-        'glow-green': '0 0 25px -5px rgba(0, 230, 118, 0.2)',
-        'glow-red': '0 0 25px -5px rgba(255, 23, 68, 0.2)',
-        'subtle': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
+        'glow-cyan': '0 0 0 1px rgba(88, 166, 255, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
+        'glow-green': '0 0 0 1px rgba(63, 185, 80, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
+        'glow-red': '0 0 0 1px rgba(248, 81, 73, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
+        'subtle': '0 1px 3px rgba(1, 4, 9, 0.8), 0 0 0 1px #30363d',
+        'github-card': '0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px #30363d',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'scan-line': 'scanLine 2s ease-in-out infinite',
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-up': 'slideUp 0.4s ease-out',
-        'slide-in-left': 'slideInLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'slide-in-left': 'slideInLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
       },
       keyframes: {
         scanLine: {
