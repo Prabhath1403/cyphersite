@@ -213,6 +213,12 @@ class GraphEngine:
         )
 
     @classmethod
+    def sync_to_neo4j(cls, graph: GraphData) -> bool:
+        """Persist graph data to Neo4j database. Non-fatal on failure."""
+        from app.core.graph.neo4j_client import sync_graph_to_neo4j
+        return sync_graph_to_neo4j(graph)
+
+    @classmethod
     def generate_cypher_statements(cls, graph: GraphData) -> List[str]:
         """
         Generate Cypher statements to sync the GraphData into a Neo4j database.

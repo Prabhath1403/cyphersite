@@ -6,6 +6,7 @@ to connected WebSocket clients.
 """
 
 import asyncio
+from datetime import datetime
 import json
 import logging
 
@@ -19,10 +20,11 @@ router = APIRouter()
 
 
 class ConnectionManager:
-    """Manages WebSocket connections for scan progress streaming."""
+    """Manages WebSocket connections for scan progress and Git monitor streaming."""
 
     def __init__(self):
         self.active_connections: dict[str, list[WebSocket]] = {}
+        self.git_monitor_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket, scan_id: str):
         """Accept and register a WebSocket connection."""
@@ -52,6 +54,37 @@ class ConnectionManager:
 
             for ws in disconnected:
                 self.disconnect(ws, scan_id)
+
+    async def connect_git(self, websocket: WebSocket):
+        """Accept and register a Git monitor WebSocket client."""
+        await websocket.accept()
+        self.git_monitor_connections.append(websocket)
+        logger.info("WebSocket client registered to Git Live Monitor stream")
+
+    def disconnect_git(self, websocket: WebSocket):
+        """Unregister a Git monitor WebSocket client."""
+        if websocket in self.git_monitor_connections:
+            self.git_monitor_connections.remove(websocket)
+        logger.info("WebSocket client unregistered from Git Live Monitor stream")
+
+    async def broadcast_git_event(self, message: dict):
+        """Broadcast real-time commit/file remediation event to all clients."""
+        disconnected = []
+        for ws in self.git_monitor_connections:
+            try:
+                await ws.send_json(message)
+            except Exception:
+                disconnected.append(ws)
+
+        for ws in disconnected:
+            self.disconnect_git(ws)
+
+        try:
+            redis_client = aioredis.from_url(settings.REDIS_URL)
+            await redis_client.publish("scan:git-monitor", json.dumps(message))
+            await redis_client.close()
+        except Exception:
+            pass
 
 
 manager = ConnectionManager()
@@ -128,3 +161,29 @@ async def scan_progress_websocket(websocket: WebSocket, scan_id: str):
             await redis_client.close()
         except Exception:
             pass
+
+
+@router.websocket("/ws/git-monitor")
+async def git_monitor_websocket(websocket: WebSocket):
+    """
+    WebSocket endpoint for second-to-second Git monitoring and push remediation events.
+    Streams incremental scan results, affected file diffs, and updated risk posture.
+    """
+    await manager.connect_git(websocket)
+    try:
+        await websocket.send_json({
+            "event": "connected",
+            "message": "Connected to CipherSight Git Live Monitor real-time telemetry stream",
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_json({"event": "pong"})
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"Git monitor WebSocket error: {e}")
+    finally:
+        manager.disconnect_git(websocket)

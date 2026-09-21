@@ -43,6 +43,24 @@ async def init_db():
     """Create all database tables and apply non-destructive schema migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text("CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, hashed_password VARCHAR(255) NOT NULL, full_name VARCHAR(255), is_active BOOLEAN DEFAULT TRUE, is_admin BOOLEAN DEFAULT FALSE, created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW());")
+        )
+        # Seed default operator user if not exists
+        await conn.execute(
+            text("""
+                INSERT INTO users (id, email, hashed_password, full_name, is_active, is_admin)
+                VALUES (
+                    'a0000000-0000-0000-0000-000000000001',
+                    'operator@ciphersight.io',
+                    '$2b$12$UTNHQbdQaechMAdLC8DpR.E6f8agDfK42hNkIRvTofkSBONLYIkRK',
+                    'CipherSight Operator',
+                    TRUE,
+                    TRUE
+                )
+                ON CONFLICT (email) DO NOTHING;
+            """)
+        )
         # Auto-migrate any columns added across platform phases for existing volumes
         await conn.execute(
             text("ALTER TABLE scan_jobs ADD COLUMN IF NOT EXISTS scan_type VARCHAR(50) NOT NULL DEFAULT 'network';")
@@ -61,5 +79,26 @@ async def init_db():
                   ADD COLUMN IF NOT EXISTS risk_level VARCHAR(10),
                   ADD COLUMN IF NOT EXISTS sensitivity VARCHAR(30),
                   ADD COLUMN IF NOT EXISTS sensitivity_confidence FLOAT;
+            """)
+        )
+        await conn.execute(
+            text("""
+                CREATE TABLE IF NOT EXISTS git_monitor_events (
+                    id UUID PRIMARY KEY,
+                    repository VARCHAR(500) NOT NULL,
+                    branch VARCHAR(100) DEFAULT 'main',
+                    commit_id VARCHAR(100) NOT NULL,
+                    commit_message VARCHAR(500) NOT NULL,
+                    author VARCHAR(200) DEFAULT 'Developer',
+                    file_path VARCHAR(500) NOT NULL,
+                    action VARCHAR(50) DEFAULT 'modified',
+                    vulnerabilities_fixed INTEGER DEFAULT 0,
+                    vulnerabilities_remaining INTEGER DEFAULT 0,
+                    quantum_safe_count INTEGER DEFAULT 0,
+                    scan_id UUID,
+                    duration_ms FLOAT DEFAULT 0.0,
+                    diff_summary TEXT,
+                    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+                );
             """)
         )

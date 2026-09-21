@@ -13,6 +13,9 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 from uuid import UUID
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
@@ -59,7 +62,7 @@ class SourceScanDetailResponse(BaseModel):
 @router.post("/source", response_model=SourceScanDetailResponse)
 async def submit_source_scan(
     request: SourceScanCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Scan a Python source code repository or directory for cryptographic usages.
@@ -247,7 +250,7 @@ async def get_github_repository_info(
 @router.post("/github", response_model=SourceScanDetailResponse)
 async def submit_github_scan(
     request: GitHubScanCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Dedicated endpoint to fetch and scan a remote GitHub repository.
@@ -266,7 +269,7 @@ async def submit_github_scan(
 @router.post("/container", response_model=SourceScanDetailResponse)
 async def submit_container_scan(
     request: ContainerScanCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Scan a container image (tarball, rootfs directory, or Docker image tag)
@@ -375,7 +378,7 @@ async def submit_container_scan(
 @router.post("/binary", response_model=SourceScanDetailResponse)
 async def submit_binary_scan(
     request: BinaryScanCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Scan compiled binaries, shared libraries, or executables (ELF, PE, Mach-O)
@@ -484,7 +487,7 @@ async def submit_binary_scan(
 @router.get("/{scan_id}", response_model=SourceScanDetailResponse)
 async def get_scan_details(
     scan_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Get detailed results for any scan job by ID, including all findings.
@@ -523,7 +526,7 @@ async def get_scan_details(
 async def get_scan_cbom(
     scan_id: UUID,
     format: str = Query(default="json", pattern="^(json|cyclonedx)$"),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Get the CycloneDX CBOM document for a specific scan.
@@ -548,7 +551,7 @@ async def get_scan_cbom(
 @router.get("/{scan_id}/coverage", response_model=CoverageReportResponse)
 async def get_scan_coverage(
     scan_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Get coverage and confidence statistics for a scan.

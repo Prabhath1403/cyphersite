@@ -14,6 +14,7 @@ import {
   Lock,
   AlertOctagon,
   FileSpreadsheet,
+  Network,
 } from 'lucide-react';
 import { useScan, useAssets } from '../hooks/useScanResults';
 import ScanProgress from '../components/ScanProgress';
@@ -92,6 +93,10 @@ export default function ScanDetail() {
             <Link to={`/cbom/${scanId}`} className="btn-secondary text-xs py-2 px-3">
               <Layers className="w-3.5 h-3.5 text-indigo-400" />
               <span>View CBOM</span>
+            </Link>
+            <Link to={`/graph?scanId=${scanId}`} className="btn-secondary text-xs py-2 px-3">
+              <Network className="w-3.5 h-3.5 text-cyan-400" />
+              <span>View Topology</span>
             </Link>
           </div>
         )}

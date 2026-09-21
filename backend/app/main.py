@@ -16,8 +16,8 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db
 from app.routers import (
-    scans, assets, cbom, certificates, ws, crypto_assets,
-    source_scan, graph, risk, migration, remediation, ai_explain
+    auth, scans, assets, cbom, certificates, ws, crypto_assets,
+    source_scan, graph, risk, migration, remediation, ai_explain, cloud_scan, git_monitor
 )
 
 # CRITICAL: Import all models so Base.metadata knows about them
@@ -43,6 +43,12 @@ async def lifespan(app: FastAPI):
     logger.info("✅ Database initialized, artifacts directory ready")
     yield
     logger.info("🛑 CipherSight shutting down...")
+    # Close Neo4j driver gracefully
+    try:
+        from app.core.graph.neo4j_client import close_driver
+        await close_driver()
+    except Exception:
+        pass
 
 
 app = FastAPI(
@@ -69,6 +75,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth.router)
 app.include_router(scans.router)
 app.include_router(assets.router)
 app.include_router(cbom.router)
@@ -81,6 +88,8 @@ app.include_router(risk.router)
 app.include_router(migration.router)
 app.include_router(remediation.router)
 app.include_router(ai_explain.router)
+app.include_router(cloud_scan.router)
+app.include_router(git_monitor.router)
 
 # Mount artifacts directory for badge/QR serving
 if os.path.exists(settings.ARTIFACTS_DIR):

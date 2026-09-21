@@ -5,6 +5,9 @@ Developer Remediation and GitHub Issue Router.
 from uuid import UUID
 from typing import Optional, List, Dict, Any
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -30,7 +33,7 @@ class PublishIssueRequest(BaseModel):
 @router.get("/finding/{finding_id}/issue-preview")
 async def preview_finding_issue(
     finding_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Generate a markdown GitHub Issue preview for a specific finding.
@@ -72,7 +75,7 @@ async def publish_github_issue(request: PublishIssueRequest):
 async def export_scan_issues(
     scan_id: UUID,
     min_priority: str = "P1_HIGH",
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Export all prioritized GitHub remediation issues for a scan.

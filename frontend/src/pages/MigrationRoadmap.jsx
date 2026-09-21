@@ -18,13 +18,17 @@ import {
   FileCode,
   Globe,
   CheckCircle2,
+  FolderGit2,
+  History,
 } from 'lucide-react';
 import { getScans, getMigrationPlan, exportIssues } from '../api/client';
+import { useProjectScope } from '../context/ProjectScopeContext';
 import toast from 'react-hot-toast';
 
 export default function MigrationRoadmap() {
   const [searchParams] = useSearchParams();
   const urlScanId = searchParams.get('scanId') || searchParams.get('scan_id');
+  const { activeProject, activeProjectId, selectProject, openHistory } = useProjectScope();
   const [selectedScanId, setSelectedScanId] = useState('');
   const [activeTab, setActiveTab] = useState('ALL');
   const [copiedIndex, setCopiedIndex] = useState(null);
@@ -38,9 +42,9 @@ export default function MigrationRoadmap() {
 
   const scans = scansData?.scans || scansData?.items || (Array.isArray(scansData) ? scansData : []);
   
-  // Intelligently select a default scan that has vulnerable assets or fall back to the first scan
+  // Intelligently select active scan from context or fallback
   const defaultScan = scans.find((s) => (s.vulnerable_count || 0) > 0) || (scans.length > 0 ? scans[0] : null);
-  const activeScan = selectedScanId || urlScanId || defaultScan?.id || null;
+  const activeScan = selectedScanId || urlScanId || activeProjectId || defaultScan?.id || null;
 
   // Load migration plan for active scan
   const { data: planData, isLoading: isLoadingPlan } = useQuery({
@@ -128,12 +132,24 @@ export default function MigrationRoadmap() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {/* Scan selector */}
+          {/* Project History & Scan selector */}
+          <button
+            onClick={openHistory}
+            className="text-xs py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 transition-all flex items-center gap-1.5 cursor-pointer"
+            title="Open Project History Drawer"
+          >
+            <History className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Project History</span>
+          </button>
+
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Target Scan:</span>
+            <span className="text-xs text-gray-400">Target:</span>
             <select
               value={activeScan || ''}
-              onChange={(e) => setSelectedScanId(e.target.value)}
+              onChange={(e) => {
+                setSelectedScanId(e.target.value);
+                selectProject(e.target.value);
+              }}
               className="px-3 py-1.5 rounded-lg bg-navy-900 border border-white/10 text-xs text-white focus:outline-none focus:border-cyan-400/50 max-w-[280px] truncate"
             >
               {scans.map((s) => (

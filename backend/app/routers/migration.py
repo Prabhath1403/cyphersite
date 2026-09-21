@@ -5,6 +5,9 @@ Cryptographic Migration Recommender Router.
 from uuid import UUID
 from typing import Optional, List, Dict, Any
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -29,7 +32,7 @@ class AdHocRecommendRequest(BaseModel):
 @router.get("/plan/{scan_id}")
 async def get_scan_migration_plan(
     scan_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Generate an actionable, prioritized post-quantum migration plan for all

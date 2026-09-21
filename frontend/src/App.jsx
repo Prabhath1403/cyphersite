@@ -7,6 +7,8 @@ import {
   Network,
   Milestone,
   Cpu,
+  Cloud,
+  GitBranch,
   ShieldCheck,
   Search,
   Activity,
@@ -16,6 +18,8 @@ import {
   X,
   Bell,
   Layers,
+  History,
+  FolderGit2,
 } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import NewScan from './pages/NewScan';
@@ -25,19 +29,28 @@ import CBOMReport from './pages/CBOMReport';
 import CryptoInventory from './pages/CryptoInventory';
 import DependencyGraph from './pages/DependencyGraph';
 import MigrationRoadmap from './pages/MigrationRoadmap';
+import CloudScanner from './pages/CloudScanner';
+import GitLiveMonitor from './pages/GitLiveMonitor';
 import AIAdvisor from './pages/AIAdvisor';
+import { useGitMonitorSocket } from './hooks/useGitMonitorSocket';
+import { ProjectScopeProvider, useProjectScope } from './context/ProjectScopeContext';
+import ProjectHistoryDrawer from './components/ProjectHistoryDrawer';
 
+// Unchanged original navbar items as requested
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/scan/new', label: 'New Scan', icon: ScanLine },
   { path: '/inventory', label: 'Crypto Inventory', icon: Database },
   { path: '/graph', label: 'Topology Graph', icon: Network },
   { path: '/roadmap', label: 'Migration Roadmap', icon: Milestone },
+  { path: '/git-monitor', label: 'Git Live Monitor', icon: GitBranch },
+  { path: '/cloud', label: 'Cloud Infrastructure', icon: Cloud },
   { path: '/ai', label: 'AI Advisor', icon: Cpu },
 ];
 
 function Sidebar({ mobileOpen, setMobileOpen }) {
   const location = useLocation();
+  const { openHistory, activeProject, scansList } = useProjectScope();
 
   return (
     <>
@@ -78,18 +91,43 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
           </button>
         </div>
 
-        {/* Workspace / Context Switcher */}
-        <div className="px-4 pt-4 pb-2">
-          <div className="px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-between text-xs text-gray-300">
+        {/* ChatGPT-style Project History Trigger Button */}
+        <div className="px-3.5 pt-3 pb-2">
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              openHistory();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/25 text-xs text-cyan-300 transition-all group shadow-glow-cyan/15 cursor-pointer"
+            title="Open Project History (ChatGPT style)"
+          >
             <div className="flex items-center gap-2 truncate">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/20 animate-pulse" />
-              <span className="font-medium truncate">Enterprise Fleet</span>
+              <History className="w-4 h-4 text-cyan-400 group-hover:rotate-[-20deg] transition-transform" />
+              <span className="font-semibold truncate">Project History</span>
             </div>
-            <span className="text-[10px] font-mono text-gray-500">PROD</span>
-          </div>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-200">
+              {scansList.length}
+            </span>
+          </button>
         </div>
 
-        {/* Navigation */}
+        {/* Active Project Indicator Card */}
+        {activeProject && (
+          <div className="px-3.5 pb-2">
+            <div className="px-3 py-2 rounded-lg bg-navy-950/80 border border-white/[0.06] text-xs space-y-1">
+              <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+                <span>ACTIVE SCOPE</span>
+                <span className="text-cyan-400">ISOLATED</span>
+              </div>
+              <div className="font-mono text-white text-xs font-semibold truncate flex items-center gap-1.5" title={activeProject.target}>
+                <FolderGit2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">{activeProject.target}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation Items (Unchanged) */}
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           <div className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
             Core Modules
@@ -137,9 +175,11 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
 }
 
 function TopHeader({ setMobileOpen }) {
+  const { openHistory, activeProject } = useProjectScope();
+
   return (
     <header className="sticky top-0 z-30 h-16 bg-navy-950/80 backdrop-blur-xl border-b border-white/[0.08] px-6 flex items-center justify-between">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           onClick={() => setMobileOpen(true)}
           className="lg:hidden text-gray-400 hover:text-white p-1 rounded"
@@ -147,13 +187,27 @@ function TopHeader({ setMobileOpen }) {
           <Menu className="w-5 h-5" />
         </button>
 
+        {/* Extra Project History Button in Top Header */}
+        <button
+          onClick={openHistory}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/90 hover:bg-navy-800 border border-cyan-400/30 text-xs text-gray-200 transition-all shadow-glow-cyan/20 cursor-pointer group"
+          title="Open Project History (ChatGPT style)"
+        >
+          <History className="w-4 h-4 text-cyan-400 group-hover:rotate-[-20deg] transition-transform" />
+          <span className="text-gray-400 hidden sm:inline">Project:</span>
+          <span className="text-cyan-300 font-mono font-semibold max-w-[170px] truncate">
+            {activeProject?.target || 'Select Project'}
+          </span>
+          <ChevronRight className="w-3 h-3 text-gray-500" />
+        </button>
+
         {/* Quick Search Shortcut */}
         <Link
           to="/inventory"
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/80 hover:bg-navy-800 border border-white/10 text-xs text-gray-400 hover:text-gray-200 transition-colors w-72"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-navy-900/80 hover:bg-navy-800 border border-white/10 text-xs text-gray-400 hover:text-gray-200 transition-colors w-64"
         >
           <Search className="w-3.5 h-3.5 text-gray-400" />
-          <span>Quick search assets, ciphers, hosts...</span>
+          <span>Quick search inventory...</span>
           <kbd className="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400">
             /
           </kbd>
@@ -177,11 +231,15 @@ function TopHeader({ setMobileOpen }) {
   );
 }
 
-export default function App() {
+function AppContent() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  useGitMonitorSocket();
 
   return (
     <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-cyan-500/30">
+      {/* ChatGPT-style Project History Drawer */}
+      <ProjectHistoryDrawer />
+
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         <TopHeader setMobileOpen={setMobileOpen} />
@@ -195,10 +253,20 @@ export default function App() {
             <Route path="/inventory" element={<CryptoInventory />} />
             <Route path="/graph" element={<DependencyGraph />} />
             <Route path="/roadmap" element={<MigrationRoadmap />} />
+            <Route path="/git-monitor" element={<GitLiveMonitor />} />
+            <Route path="/cloud" element={<CloudScanner />} />
             <Route path="/ai" element={<AIAdvisor />} />
           </Routes>
         </main>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ProjectScopeProvider>
+      <AppContent />
+    </ProjectScopeProvider>
   );
 }

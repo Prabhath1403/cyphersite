@@ -10,6 +10,94 @@ const api = axios.create({
   },
 });
 
+// Token management & seamless auto-authentication
+const TOKEN_KEY = 'ciphersight_token';
+let currentToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null;
+
+export const setAuthToken = (token) => {
+  currentToken = token;
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+};
+
+export const getAuthToken = () => currentToken || (typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null);
+
+let authPromise = null;
+export const ensureAuthenticated = async () => {
+  const existing = getAuthToken();
+  if (existing) return existing;
+  if (authPromise) return authPromise;
+
+  authPromise = (async () => {
+    try {
+      const res = await axios.post('/api/auth/login', {
+        email: 'operator@ciphersight.io',
+        password: 'CipherSight_Pass123!',
+      });
+      if (res.data?.access_token) {
+        setAuthToken(res.data.access_token);
+        return res.data.access_token;
+      }
+    } catch {
+      try {
+        await axios.post('/api/auth/register', {
+          email: 'operator@ciphersight.io',
+          password: 'CipherSight_Pass123!',
+          full_name: 'CipherSight Operator',
+        });
+        const loginRes = await axios.post('/api/auth/login', {
+          email: 'operator@ciphersight.io',
+          password: 'CipherSight_Pass123!',
+        });
+        if (loginRes.data?.access_token) {
+          setAuthToken(loginRes.data.access_token);
+          return loginRes.data.access_token;
+        }
+      } catch (err) {
+        console.warn('Auto-authentication failed:', err);
+      }
+    } finally {
+      authPromise = null;
+    }
+    return null;
+  })();
+
+  return authPromise;
+};
+
+// Request interceptor attaches bearer token
+api.interceptors.request.use(async (config) => {
+  let token = getAuthToken();
+  if (!token && !config.url?.startsWith('/auth/')) {
+    token = await ensureAuthenticated();
+  }
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Response interceptor handles 401 retry
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.startsWith('/auth/')) {
+      originalRequest._retry = true;
+      setAuthToken(null);
+      const newToken = await ensureAuthenticated();
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // === Scans ===
 export const createScan = (data) => api.post('/scans', data).then((r) => r.data);
 export const getScans = (params) => api.get('/scans', { params }).then((r) => r.data);
@@ -77,4 +165,24 @@ export const queryAI = (data) => api.post('/ai/query', data).then((r) => r.data)
 export const getCertificate = (assetId) => api.get(`/certificates/${assetId}`).then((r) => r.data);
 export const verifyCertificate = (certId) => api.get(`/certificates/verify/${certId}`).then((r) => r.data);
 
+// === Cloud Infrastructure Scanner (PQC-CSPM) ===
+export const scanCloudFleet = (provider = 'aws', data = {}) =>
+  api.post(`/cloud/scan/${provider.toLowerCase()}`, data).then((r) => r.data);
+export const evaluateCloudInventory = (data) =>
+  api.post('/cloud/evaluate-inventory', data).then((r) => r.data);
+export const getCloudInstanceCatalog = () =>
+  api.get('/cloud/instance-types').then((r) => r.data);
+
+// === Git Live Monitor ===
+export const getGitMonitorStatus = () => api.get('/git-monitor/status').then((r) => r.data);
+export const getGitMonitorEvents = (params) => api.get('/git-monitor/events', { params }).then((r) => r.data);
+export const simulateGitPush = (data) => api.post('/git-monitor/simulate-push', data).then((r) => r.data);
+export const getRemediationPresets = () => api.get('/git-monitor/presets').then((r) => r.data);
+export const triggerRemediationPreset = (data) => api.post('/git-monitor/trigger-preset', data).then((r) => r.data);
+export const startGitWatcher = (data) => api.post('/git-monitor/watch/start', data).then((r) => r.data);
+export const stopGitWatcher = () => api.post('/git-monitor/watch/stop').then((r) => r.data);
+export const checkPushesNow = () => api.post('/git-monitor/check-now').then((r) => r.data);
+export const getGitWebhookInfo = () => api.get('/git-monitor/webhook-info').then((r) => r.data);
+
 export default api;
+

@@ -9,5 +9,7 @@ from app.models.asset import Asset
 from app.models.cbom import CBOMRecord
 from app.models.certificate import PQCCertificate
 from app.models.crypto_asset import CryptoAsset
+from app.models.user import User
+from app.models.git_monitor import GitMonitorEvent
 
-__all__ = ["ScanJob", "Asset", "CBOMRecord", "PQCCertificate", "CryptoAsset"]
+__all__ = ["ScanJob", "Asset", "CBOMRecord", "PQCCertificate", "CryptoAsset", "User", "GitMonitorEvent"]

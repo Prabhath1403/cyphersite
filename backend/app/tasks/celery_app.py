@@ -15,7 +15,7 @@ celery_app = Celery(
     "ciphersight",
     broker=CELERY_BROKER_URL,
     backend=CELERY_RESULT_BACKEND,
-    include=["app.tasks.scan_tasks"],
+    include=["app.tasks.scan_tasks", "app.tasks.source_scan_tasks"],
 )
 
 celery_app.conf.update(

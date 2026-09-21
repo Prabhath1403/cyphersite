@@ -4,10 +4,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { getScan, getScans, getDashboardStats, getAssets, getAssetDetail, getCBOM, getCertificate } from '../api/client';
 
-export function useDashboardStats() {
+export function useDashboardStats(scanId) {
   return useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: getDashboardStats,
+    queryKey: ['dashboard-stats', scanId],
+    queryFn: () => getDashboardStats(scanId ? { scan_id: scanId } : {}),
     refetchInterval: 10000,
   });
 }

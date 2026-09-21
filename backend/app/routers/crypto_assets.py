@@ -4,6 +4,9 @@ import logging
 from uuid import UUID
 from typing import Optional
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -30,7 +33,7 @@ async def list_crypto_assets(
     primitive: Optional[str] = Query(default=None),
     limit: int = Query(default=50, le=200),
     offset: int = Query(default=0, ge=0),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     List crypto assets with optional filtering.
@@ -96,7 +99,7 @@ async def list_crypto_assets(
 @router.get("/{asset_id}", response_model=CryptoAssetResponse)
 async def get_crypto_asset(
     asset_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """Get a single crypto asset by ID."""
     result = await db.execute(
@@ -113,7 +116,7 @@ async def get_crypto_asset(
 @router.post("", response_model=CryptoAssetResponse, status_code=201)
 async def create_crypto_asset(
     payload: CryptoAssetCreate,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Create a new crypto asset.

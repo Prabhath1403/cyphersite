@@ -90,3 +90,4 @@ class DashboardStats(BaseModel):
     quantum_safe_pct: float
     vulnerable_count: int
     recent_scans: List[ScanSummary]
+    active_scan: Optional[ScanSummary] = None

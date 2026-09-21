@@ -5,6 +5,9 @@ Quantum Risk and Mosca Theorem API Router.
 from uuid import UUID
 from typing import Optional, List, Dict, Any
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -57,7 +60,7 @@ async def evaluate_algorithm_risk(request: RiskEvaluationRequest):
 @router.get("/scan/{scan_id}")
 async def get_scan_risk_profile(
     scan_id: UUID,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Generate an aggregated post-quantum risk profile and Mosca theorem analysis

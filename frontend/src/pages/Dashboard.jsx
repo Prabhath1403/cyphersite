@@ -19,8 +19,11 @@ import {
   ExternalLink,
   ShieldAlert,
   FileCheck2,
+  History,
+  FolderGit2,
 } from 'lucide-react';
 import { useDashboardStats } from '../hooks/useScanResults';
+import { useProjectScope } from '../context/ProjectScopeContext';
 import CipherChart from '../components/CipherChart';
 
 const STAT_CARDS = [
@@ -64,7 +67,8 @@ const STAT_CARDS = [
 ];
 
 export default function Dashboard() {
-  const { data: stats, isLoading } = useDashboardStats();
+  const { activeProject, activeProjectId, openHistory } = useProjectScope();
+  const { data: stats, isLoading } = useDashboardStats(activeProjectId);
 
   const totalAssets = stats?.total_assets || 0;
   const vulnerableCount = stats?.vulnerable_count || 0;
@@ -78,7 +82,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header with Title & Primary CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -93,10 +97,14 @@ export default function Dashboard() {
             Real-time Shor algorithm vulnerability detection, Mosca Theorem modeling, and CycloneDX CBOM intelligence.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <button onClick={openHistory} className="btn-secondary text-xs flex items-center gap-1.5">
+            <History className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Project History</span>
+          </button>
           <Link to="/roadmap" className="btn-secondary text-xs">
             <FileCheck2 className="w-4 h-4 text-gray-300" />
-            <span>Migration Roadmap</span>
+            <span>Roadmap</span>
           </Link>
           <Link to="/scan/new" className="btn-primary text-xs">
             <Plus className="w-4 h-4" />
@@ -104,6 +112,46 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Active Project Scope Banner */}
+      {activeProject && (
+        <div className="glass-card p-3.5 border border-cyan-500/25 bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-400">
+              <FolderGit2 className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase px-2 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 font-semibold">
+                  Auditing Project
+                </span>
+                <span className="text-xs text-gray-400 font-mono">
+                  {new Date(activeProject.created_at || Date.now()).toLocaleDateString()} at{' '}
+                  {new Date(activeProject.created_at || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <h2 className="text-sm font-bold text-white font-mono mt-0.5">{activeProject.target}</h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={openHistory}
+              className="text-xs py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <History className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Switch Project (History)</span>
+            </button>
+            <Link
+              to={`/scan/${activeProject.id}`}
+              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5"
+            >
+              <span>Scan Details</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Threat Horizon & Mosca Condition Banner */}
       <div className="rounded-xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-rose-500/5 to-transparent p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">

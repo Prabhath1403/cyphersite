@@ -5,6 +5,9 @@ AI Cryptographic Explanation and Post-Quantum Advisory Router.
 from uuid import UUID
 from typing import Optional, List, Dict, Any
 
+from app.core.auth.security import get_current_active_user
+from app.models.user import User
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +32,7 @@ agent = AIExplanationAgent()
 @router.post("/explain", response_model=AIExplanationResponse)
 async def explain_finding(
     request: AIExplainFindingRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Generate an in-depth, scientifically rigorous explanation of quantum vulnerability,
@@ -81,7 +84,7 @@ async def explain_finding_by_id(
     finding_id: UUID,
     audience: str = Query("developer", pattern="^(developer|executive|auditor)$"),
     use_llm: bool = Query(False),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Convenience endpoint to retrieve an AI explanation for an existing finding by UUID.
@@ -115,7 +118,7 @@ async def explain_finding_by_id(
 async def get_scan_ai_summary(
     scan_id: UUID,
     use_llm: bool = Query(False),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Generate an executive-ready post-quantum readiness report for an entire scan job.
@@ -153,7 +156,7 @@ async def get_scan_ai_summary(
 @router.post("/query", response_model=AIQueryResponse)
 async def query_cryptographic_posture(
     request: AIQueryRequest,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user),
 ):
     """
     Ask natural language questions about Shor/Grover algorithms, Mosca's theorem,

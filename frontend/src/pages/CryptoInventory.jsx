@@ -26,9 +26,13 @@ import {
   Layers,
   Send,
   SlidersHorizontal,
+  History,
+  FolderGit2,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getCryptoAssets, explainFinding, getIssuePreview, publishGitHubIssue } from '../api/client';
+import { useProjectScope } from '../context/ProjectScopeContext';
 import PQCBadge from '../components/PQCBadge';
 
 export default function CryptoInventory() {
@@ -65,10 +69,16 @@ export default function CryptoInventory() {
   // Copy feedback state
   const [copiedKey, setCopiedKey] = useState(null);
 
+  const { activeProject, activeProjectId, openHistory } = useProjectScope();
+  const [scopeMode, setScopeMode] = useState('project'); // 'project' | 'all'
+
+  const effectiveScanId = scopeMode === 'project' ? (activeProjectId || undefined) : undefined;
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['crypto-assets', sourceFilter, statusFilter, primitiveFilter],
+    queryKey: ['crypto-assets', effectiveScanId, sourceFilter, statusFilter, primitiveFilter],
     queryFn: () =>
       getCryptoAssets({
+        scan_id: effectiveScanId,
         limit: 200,
         source_type: sourceFilter || undefined,
         pqc_status: statusFilter || undefined,
@@ -307,6 +317,62 @@ export default function CryptoInventory() {
             <Plus className="w-3.5 h-3.5" />
             <span>New Scan</span>
           </Link>
+        </div>
+      </div>
+
+      {/* Project Scope Banner */}
+      <div className="glass-card p-3.5 border border-cyan-500/20 bg-gradient-to-r from-navy-950 via-navy-900 to-navy-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-400">
+            <FolderGit2 className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono uppercase px-2 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 font-semibold">
+                {scopeMode === 'project' ? 'Active Project Scope' : 'Combined Portfolio'}
+              </span>
+              {scopeMode === 'project' && activeProject && (
+                <span className="text-xs text-gray-400 font-mono">
+                  {assets.length} Cryptographic Findings Discovered
+                </span>
+              )}
+            </div>
+            <h2 className="text-sm font-bold text-white font-mono mt-0.5">
+              {scopeMode === 'project'
+                ? activeProject?.target || 'No Project Selected'
+                : 'All Scans Combined Inventory'}
+            </h2>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {scopeMode === 'project' ? (
+            <>
+              <button
+                onClick={openHistory}
+                className="text-xs py-1.5 px-3 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Switch to another project in history"
+              >
+                <History className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Switch Project</span>
+              </button>
+              <button
+                onClick={() => setScopeMode('all')}
+                className="btn-secondary text-xs py-1.5 px-3"
+                title="View combined inventory across all projects"
+              >
+                <span>View All Combined</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setScopeMode('project')}
+              className="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5"
+            >
+              <FolderGit2 className="w-3.5 h-3.5" />
+              <span>Back to Active Project</span>
+            </button>
+          )}
         </div>
       </div>
 
