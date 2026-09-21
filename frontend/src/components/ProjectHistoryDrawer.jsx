@@ -106,13 +106,13 @@ export default function ProjectHistoryDrawer() {
         {/* Drawer Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-navy-900/80">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-glow-green/20">
+            <div className="p-2 rounded-lg bg-white/10 border border-white/20 text-silver-200 shadow-glow-silver/20">
               <History className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 <span>Project History</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-emerald-300 border border-white/10">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-silver-200 border border-white/10">
                   {scansList.length}
                 </span>
               </h2>
@@ -134,15 +134,15 @@ export default function ProjectHistoryDrawer() {
           <Link
             to="/scan/new"
             onClick={closeHistory}
-            className="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500/20 via-emerald-400/15 to-emerald-500/20 hover:from-emerald-500/30 hover:to-emerald-500/30 border border-emerald-500/30 hover:border-emerald-500/50 text-white text-xs font-semibold flex items-center justify-between shadow-glow-green transition-all group"
+            className="w-full py-2.5 px-3.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] border border-white/20 hover:border-white/30 text-white text-xs font-semibold flex items-center justify-between shadow-glow-silver transition-all group"
           >
             <div className="flex items-center gap-2.5">
-              <div className="p-1 rounded bg-emerald-400/20 text-emerald-300">
+              <div className="p-1 rounded bg-white/15 text-silver-100">
                 <Plus className="w-4 h-4" />
               </div>
               <span>Scan New Project / Repository</span>
             </div>
-            <ArrowRight className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 text-silver-300 group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
           {/* Search Input */}
@@ -153,7 +153,7 @@ export default function ProjectHistoryDrawer() {
               placeholder="Search previous projects..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-navy-900 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-emerald-500/50"
+              className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-navy-900 border border-white/10 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-white/30"
             />
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function ProjectHistoryDrawer() {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             Project Isolation Active
           </span>
-          <span className="text-cyan-400 text-[10px]">ChatGPT-Style Scope</span>
+          <span className="text-silver-300 text-[10px]">ChatGPT-Style Scope</span>
         </div>
       </aside>
     </>
@@ -245,7 +245,7 @@ function ProjectCard({ project, isActive, onSelect }) {
       onClick={onSelect}
       className={`p-3 rounded-xl border transition-all cursor-pointer relative group ${
         isActive
-          ? 'bg-emerald-500/15 border-emerald-500/50 shadow-glow-green'
+          ? 'bg-white/[0.08] border-white/30 shadow-glow-silver'
           : 'bg-navy-900/60 border-white/5 hover:bg-navy-800/60 hover:border-white/15'
       }`}
     >
@@ -254,7 +254,7 @@ function ProjectCard({ project, isActive, onSelect }) {
           <div
             className={`p-2 rounded-lg border ${
               isActive
-                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                ? 'bg-white/15 border-white/25 text-silver-100'
                 : 'bg-white/5 border-white/10 text-gray-400 group-hover:text-white'
             }`}
           >
@@ -263,7 +263,7 @@ function ProjectCard({ project, isActive, onSelect }) {
           <div className="min-w-0">
             <h4
               className={`text-xs font-semibold truncate font-mono ${
-                isActive ? 'text-emerald-300 font-bold' : 'text-gray-200'
+                isActive ? 'text-white font-bold' : 'text-gray-200'
               }`}
               title={project.target}
             >
@@ -285,7 +285,7 @@ function ProjectCard({ project, isActive, onSelect }) {
 
         {/* Active Checkmark or Status Pill */}
         {isActive ? (
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold whitespace-nowrap">
+          <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/15 border border-white/25 text-white text-[10px] font-mono font-bold whitespace-nowrap">
             <Check className="w-3 h-3" />
             <span>ACTIVE</span>
           </div>
@@ -303,7 +303,7 @@ function ProjectCard({ project, isActive, onSelect }) {
       {/* Summary Footer on the card */}
       <div className="mt-2.5 pt-2 border-t border-white/[0.04] flex items-center justify-between text-[10px] text-gray-400">
         <span>{project.total_assets || project.quantum_safe_count + (project.vulnerable_count || 0)} Assets</span>
-        <span className="text-gray-500 group-hover:text-emerald-400 flex items-center gap-1 transition-colors">
+        <span className="text-gray-500 group-hover:text-silver-200 flex items-center gap-1 transition-colors">
           <span>Inspect Project</span>
           <ArrowRight className="w-3 h-3" />
         </span>

@@ -60,6 +60,13 @@ export default {
           400: '#bc8cff', // GitHub merged purple
           500: '#8957e5',
         },
+        silver: {
+          100: '#f8fafc',
+          200: '#e2e8f0', // Clean silver/platinum
+          300: '#cbd5e1', // Classic metallic silver
+          400: '#94a3b8',
+          500: '#64748b',
+        },
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Noto Sans', 'Helvetica', 'Arial', 'sans-serif'],
@@ -68,6 +75,7 @@ export default {
       boxShadow: {
         'glow-cyan': '0 0 0 1px rgba(88, 166, 255, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
         'glow-green': '0 0 0 1px rgba(63, 185, 80, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
+        'glow-silver': '0 0 0 1px rgba(226, 232, 240, 0.3), 0 2px 8px rgba(1, 4, 9, 0.5)',
         'glow-red': '0 0 0 1px rgba(248, 81, 73, 0.4), 0 2px 8px rgba(1, 4, 9, 0.4)',
         'subtle': '0 1px 3px rgba(1, 4, 9, 0.8), 0 0 0 1px #30363d',
         'github-card': '0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px #30363d',

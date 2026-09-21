@@ -47,17 +47,17 @@
   }
 
   ::selection {
-    background: rgba(35, 134, 54, 0.45);
+    background: rgba(226, 232, 240, 0.28);
     color: #ffffff;
   }
 
   ::-moz-selection {
-    background: rgba(35, 134, 54, 0.45);
+    background: rgba(226, 232, 240, 0.28);
     color: #ffffff;
   }
 
   input, textarea {
-    caret-color: #3fb950;
+    caret-color: #e2e8f0;
   }
 }
 
@@ -104,7 +104,7 @@
 
   /* GitHub Form Inputs */
   .input-field {
-    @apply w-full px-3.5 py-2 bg-navy-950 border border-navy-750 rounded-md text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors duration-150 font-mono text-sm;
+    @apply w-full px-3.5 py-2 bg-navy-950 border border-navy-750 rounded-md text-gray-200 placeholder-gray-500 focus:outline-none focus:border-silver-300/70 focus:ring-1 focus:ring-silver-300/30 transition-colors duration-150 font-mono text-sm;
   }
 
   /* GitHub Status Badges (Security labels) */
