@@ -49,13 +49,20 @@ const PIPELINE_COLUMNS = [
 
 export default function DependencyGraph() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const scanIdFromUrl = searchParams.get('scanId');
-  const { activeProject, activeProjectId, selectProject, openHistory, scansList } = useProjectScope();
+  const scanIdFromUrl = searchParams.get('scanId') || searchParams.get('scan_id');
+  const { activeProject, activeProjectId, selectProject, openHistory, scansList, isLoadingScans } = useProjectScope();
 
   // Selected single scan state (strictly one project at a time)
-  const selectedScanId = scanIdFromUrl || activeProjectId || (scansList[0]?.id || '');
+  const selectedScanId = activeProjectId || scanIdFromUrl || (scansList[0]?.id || '');
 
-  // Handle user selecting a different project
+  // Synchronize URL if scanId is present in searchParams
+  useEffect(() => {
+    if (scanIdFromUrl && scanIdFromUrl !== activeProjectId && scansList.some((s) => s.id === scanIdFromUrl)) {
+      selectProject(scanIdFromUrl);
+    }
+  }, [scanIdFromUrl, activeProjectId, scansList, selectProject]);
+
+  // Handle user selecting a different project from dropdown
   const handleSelectProject = (newScanId) => {
     selectProject(newScanId);
     setSearchParams({ scanId: newScanId });
@@ -779,7 +786,7 @@ RETURN f.name, a.name, d.name LIMIT 25;`;
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
         {/* SVG Graph Viewport */}
         <div className="lg:col-span-3 glass-card h-[640px] relative overflow-hidden border border-white/10 flex flex-col shadow-2xl">
-          {isGraphLoading || isScansLoading ? (
+          {isGraphLoading || isLoadingScans ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
               <div className="animate-spin inline-block w-8 h-8 border-2 border-cyan-400 border-t-transparent rounded-full mb-3" />
               <p className="text-xs font-medium text-cyan-300">Rendering project cryptographic topology...</p>

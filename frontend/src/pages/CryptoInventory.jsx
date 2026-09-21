@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Database,
   RefreshCw,
@@ -69,8 +69,17 @@ export default function CryptoInventory() {
   // Copy feedback state
   const [copiedKey, setCopiedKey] = useState(null);
 
-  const { activeProject, activeProjectId, openHistory } = useProjectScope();
+  const [searchParams] = useSearchParams();
+  const scanIdFromUrl = searchParams.get('scan_id') || searchParams.get('scanId');
+  const { activeProject, activeProjectId, selectProject, openHistory, scansList } = useProjectScope();
   const [scopeMode, setScopeMode] = useState('project'); // 'project' | 'all'
+
+  // If scan_id is in URL, synchronize to active project
+  useEffect(() => {
+    if (scanIdFromUrl && scanIdFromUrl !== activeProjectId && scansList?.some((s) => s.id === scanIdFromUrl)) {
+      selectProject(scanIdFromUrl);
+    }
+  }, [scanIdFromUrl, activeProjectId, scansList, selectProject]);
 
   const effectiveScanId = scopeMode === 'project' ? (activeProjectId || undefined) : undefined;
 
