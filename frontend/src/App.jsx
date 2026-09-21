@@ -63,7 +63,7 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
       )}
 
       <aside
-        className={`fixed left-0 top-0 h-full w-64 bg-navy-900/95 backdrop-blur-2xl border-r border-white/[0.08] z-50 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 h-full w-64 bg-navy-900/95 backdrop-blur-2xl border-r border-white/[0.08] z-40 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -237,9 +237,6 @@ function AppContent() {
 
   return (
     <div className="flex min-h-screen bg-navy-950 text-gray-100 selection:bg-cyan-500/30">
-      {/* ChatGPT-style Project History Drawer */}
-      <ProjectHistoryDrawer />
-
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
         <TopHeader setMobileOpen={setMobileOpen} />
@@ -259,6 +256,9 @@ function AppContent() {
           </Routes>
         </main>
       </div>
+
+      {/* ChatGPT-style Project History Drawer - high z-index slide-over */}
+      <ProjectHistoryDrawer />
     </div>
   );
 }

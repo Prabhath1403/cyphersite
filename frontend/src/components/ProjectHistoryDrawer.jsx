@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   History,
@@ -25,6 +25,33 @@ export default function ProjectHistoryDrawer() {
   const { isHistoryOpen, closeHistory, scansList, activeProjectId, selectProject } = useProjectScope();
 
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Lock body scroll when drawer is open
+  useEffect(() => {
+    if (isHistoryOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isHistoryOpen]);
+
+  // Handle ESC key to dismiss drawer
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeHistory();
+      }
+    };
+    if (isHistoryOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isHistoryOpen, closeHistory]);
 
   // Filter projects by search
   const filteredProjects = useMemo(() => {
@@ -68,24 +95,24 @@ export default function ProjectHistoryDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - High z-index to sit on top of sidebars and topbars */}
       <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 transition-opacity animate-fade-in"
+        className="fixed inset-0 bg-black/75 backdrop-blur-md z-[60] transition-opacity animate-fade-in cursor-pointer"
         onClick={closeHistory}
       />
 
-      {/* Slide-over Drawer (ChatGPT style) */}
-      <aside className="fixed left-0 top-0 bottom-0 w-full max-w-md bg-navy-950/95 border-r border-white/10 z-50 shadow-2xl flex flex-col transform transition-transform duration-300 animate-slide-in">
+      {/* Slide-over Drawer (ChatGPT style) - Highest z-index */}
+      <aside className="fixed left-0 top-0 bottom-0 w-full max-w-sm sm:max-w-md bg-navy-950/98 border-r border-white/10 z-[70] shadow-2xl flex flex-col transform transition-transform duration-300 animate-slide-in-left">
         {/* Drawer Header */}
-        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-navy-900/60">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-navy-900/80">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-400">
+            <div className="p-2 rounded-lg bg-cyan-500/15 border border-cyan-400/30 text-cyan-400 shadow-glow-cyan/20">
               <History className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-bold text-white flex items-center gap-2">
                 <span>Project History</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-gray-400">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-white/10 text-cyan-300 border border-white/10">
                   {scansList.length}
                 </span>
               </h2>
@@ -95,8 +122,8 @@ export default function ProjectHistoryDrawer() {
 
           <button
             onClick={closeHistory}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-            title="Close History"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Close History (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
